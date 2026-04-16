@@ -1,0 +1,178 @@
+import React, { useRef, useEffect } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  FlatList,
+  TouchableOpacity,
+  ActivityIndicator,
+  Animated,
+} from 'react-native';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { EventsStackParamList } from '../../navigation/EventsStack';
+import { EventCountdown } from '../../components/events/EventCountdown';
+import { FeaturedSlotCard } from '../../components/slots/FeaturedSlotCard';
+import { WWEButton } from '../../components/ui/WWEButton';
+import { useEvents } from '../../hooks/useEvents';
+import { useSlots } from '../../hooks/useSlots';
+import { theme } from '../../constants/theme';
+
+type Props = NativeStackScreenProps<EventsStackParamList, 'EventsList'>;
+
+export function EventsListScreen({ navigation }: Props) {
+  const insets = useSafeAreaInsets();
+  const { events, loading: eventLoading } = useEvents();
+  const event = events.find((e) => e.status === 'live') ?? events[0] ?? null;
+  const eventId = event?.id ?? '';
+  const { slots } = useSlots(eventId);
+
+  const featuredSlots = event?.featuredSlotIds
+    ? slots.filter((s) => event.featuredSlotIds.includes(s.id))
+    : [];
+
+  const canEnter = event?.status === 'live';
+
+  const glowAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    if (canEnter) {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(glowAnim, { toValue: 1, duration: 1000, useNativeDriver: false }),
+          Animated.timing(glowAnim, { toValue: 0, duration: 1000, useNativeDriver: false }),
+        ])
+      ).start();
+    } else {
+      glowAnim.stopAnimation();
+      glowAnim.setValue(0);
+    }
+  }, [canEnter]);
+
+  if (eventLoading) {
+    return (
+      <View style={styles.centered}>
+        <ActivityIndicator color={theme.colors.red} size="large" />
+      </View>
+    );
+  }
+
+  return (
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={[styles.content, { paddingTop: insets.top + 16 }]}
+    >
+      {/* Header */}
+      <View style={styles.header}>
+        <Text style={styles.brandTop}>BREAKBOX</Text>
+        <Text style={styles.brandWwe}>WWE</Text>
+      </View>
+
+      {/* Event title */}
+      {event && (
+        <Text style={styles.eventTitle}>{event.title}</Text>
+      )}
+
+      {/* Countdown / Live badge */}
+      {event && <EventCountdown event={event} />}
+
+      {/* Progress */}
+      {event && (
+        <View style={styles.progressRow}>
+          <Text style={styles.progressText}>
+            {event.soldSlots}/{event.totalSlots} SLOTS CLAIMED
+          </Text>
+          <View style={styles.progressBar}>
+            <View
+              style={[
+                styles.progressFill,
+                { width: `${(event.soldSlots / event.totalSlots) * 100}%` },
+              ]}
+            />
+          </View>
+        </View>
+      )}
+
+      {/* CTA */}
+      <Animated.View
+        style={[
+          styles.ctaWrapper,
+          {
+            shadowColor: theme.colors.red,
+            shadowOffset: { width: 0, height: 0 },
+            shadowOpacity: glowAnim as any,
+            shadowRadius: 12,
+            elevation: 6,
+          },
+        ]}
+      >
+        <WWEButton
+          label={event?.status === 'closed' ? 'EVENT CLOSED' : 'ENTER THE ARENA'}
+          onPress={() => navigation.navigate('SlotsRoster', { eventId: eventId })}
+          disabled={!canEnter}
+          style={styles.ctaButton}
+        />
+      </Animated.View>
+
+      {/* Top Contenders */}
+      {featuredSlots.length > 0 && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>TOP CONTENDERS</Text>
+          <Text style={styles.sectionSubtitle}>HIGH VALUE SLOTS</Text>
+          <FlatList
+            data={featuredSlots}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => (
+              <FeaturedSlotCard
+                slot={item}
+                onPress={() => navigation.navigate('SlotsRoster', { eventId: eventId })}
+              />
+            )}
+            contentContainerStyle={styles.featuredList}
+          />
+        </View>
+      )}
+
+      {!event && !eventLoading && (
+        <View style={styles.noEvent}>
+          <Text style={styles.noEventText}>No upcoming events.</Text>
+          <Text style={styles.noEventSub}>Check back soon!</Text>
+        </View>
+      )}
+    </ScrollView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: theme.colors.background },
+  content: { paddingBottom: 32 },
+  centered: { flex: 1, backgroundColor: theme.colors.background, alignItems: 'center', justifyContent: 'center' },
+  header: { alignItems: 'center', marginBottom: theme.spacing.sm },
+  brandTop: { color: theme.colors.textPrimary, fontSize: 22, fontWeight: '900', letterSpacing: 6, fontFamily: 'Oswald_700Bold' },
+  brandWwe: { color: theme.colors.red, fontSize: 38, fontWeight: '900', letterSpacing: 8, marginTop: -6, fontFamily: 'Oswald_700Bold' },
+  eventTitle: {
+    color: theme.colors.textSecondary,
+    fontSize: theme.sizes.xs,
+    textAlign: 'center',
+    letterSpacing: 2,
+    marginBottom: theme.spacing.sm,
+    paddingHorizontal: theme.spacing.lg,
+    fontFamily: 'Oswald_400Regular',
+  },
+  progressRow: { paddingHorizontal: theme.spacing.lg, marginBottom: theme.spacing.md },
+  progressText: { color: theme.colors.textSecondary, fontSize: theme.sizes.xs, letterSpacing: 2, marginBottom: 6, textAlign: 'center' },
+  progressBar: { height: 4, backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 2 },
+  progressFill: { height: 4, backgroundColor: theme.colors.red, borderRadius: 2 },
+  ctaWrapper: { marginHorizontal: theme.spacing.lg, marginBottom: theme.spacing.lg },
+  ctaButton: {},
+  section: { paddingHorizontal: theme.spacing.lg },
+  sectionTitle: { color: theme.colors.textPrimary, fontSize: theme.sizes.sm, fontWeight: '900', letterSpacing: 3, fontFamily: 'Oswald_700Bold' },
+  sectionSubtitle: { color: theme.colors.gold, fontSize: theme.sizes.xs, letterSpacing: 3, marginBottom: theme.spacing.sm, fontFamily: 'Oswald_700Bold' },
+  featuredList: { paddingRight: theme.spacing.lg },
+  noEvent: { alignItems: 'center', marginTop: 60 },
+  noEventText: { color: theme.colors.textSecondary, fontSize: theme.sizes.md },
+  noEventSub: { color: theme.colors.textDimmed, fontSize: theme.sizes.sm, marginTop: 4 },
+});

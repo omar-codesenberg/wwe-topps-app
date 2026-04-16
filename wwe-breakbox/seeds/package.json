@@ -1,0 +1,16 @@
+{
+  "name": "wwe-breakbox-seeds",
+  "private": true,
+  "scripts": {
+    "seed": "ts-node -P tsconfig.json seedSlots.ts"
+  },
+  "dependencies": {
+    "@google-cloud/firestore": "^8.5.0",
+    "firebase-admin": "^11.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "ts-node": "^10.9.0",
+    "typescript": "^5.0.0"
+  }
+}
