@@ -3,6 +3,7 @@ import { TouchableOpacity, Text, Alert } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { EventsStack } from './EventsStack';
 import { MyPurchasesScreen } from '../screens/purchases/MyPurchasesScreen';
+import ProfileScreen from '../screens/profile/ProfileScreen';
 import { signOut } from '../services/auth.service';
 import { useAuthStore } from '../store/authStore';
 import { theme } from '../constants/theme';
@@ -10,6 +11,7 @@ import { theme } from '../constants/theme';
 export type MainTabParamList = {
   Events: undefined;
   MyPurchases: undefined;
+  Profile: undefined;
 };
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
@@ -79,6 +81,18 @@ export function MainTabs() {
           ),
           tabBarLabel: 'MY SPOTS',
           tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 20 }}>🎴</Text>,
+        }}
+      />
+      <Tab.Screen
+        name="Profile"
+        component={ProfileScreen}
+        options={{
+          title: 'PROFILE',
+          headerShown: true,
+          headerStyle: { backgroundColor: theme.colors.background },
+          headerTitleStyle: { color: theme.colors.textPrimary, fontWeight: '900', letterSpacing: 2 },
+          tabBarLabel: 'PROFILE',
+          tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 20 }}>👤</Text>,
         }}
       />
     </Tab.Navigator>
