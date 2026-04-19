@@ -36,6 +36,12 @@ export async function createUserDocument(user: User): Promise<void> {
     await setDoc(userRef, {
       email: user.email,
       displayName: user.displayName || '',
+      firstName: '',
+      lastName: '',
+      username: '',
+      shippingAddress: null,
+      wantBaseCards: true,
+      legacyUser: false,
       createdAt: serverTimestamp(),
       fcmToken: null,
       purchaseCount: 0,
