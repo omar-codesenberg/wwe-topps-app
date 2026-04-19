@@ -3,7 +3,7 @@ import { TouchableOpacity, Text, Alert } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { EventsStack } from './EventsStack';
 import { MyPurchasesScreen } from '../screens/purchases/MyPurchasesScreen';
-import ProfileScreen from '../screens/profile/ProfileScreen';
+import { ProfileScreen } from '../screens/profile/ProfileScreen';
 import { signOut } from '../services/auth.service';
 import { useAuthStore } from '../store/authStore';
 import { theme } from '../constants/theme';
