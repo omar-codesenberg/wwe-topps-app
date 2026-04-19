@@ -11,6 +11,8 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { EventsStackParamList } from '../../navigation/EventsStack';
 import { SlotCard } from '../../components/slots/SlotCard';
 import { useSlots } from '../../hooks/useSlots';
+import { doc, updateDoc, serverTimestamp, Timestamp } from 'firebase/firestore';
+import { firebaseDb } from '../../config/firebase';
 import { useAuthStore } from '../../store/authStore';
 import { useToastStore } from '../../store/toastStore';
 import { BRAND_CONFIG } from '../../constants/brands';
@@ -28,21 +30,32 @@ export function SlotsRosterScreen({ route, navigation }: Props) {
 
   const handleBuySpot = async (slot: Slot) => {
     if (!user) return;
-    if (slot.status !== 'available') {
-      show('This slot is not available.', 'error');
+    if (slot.status === 'sold') {
+      show('This slot has been claimed.', 'error');
+      return;
+    }
+    if (slot.status === 'locked' && slot.lockedBy !== user.uid) {
+      show('This slot is being reserved by another user.', 'error');
       return;
     }
     setLockingSlotId(slot.id);
     try {
-      const lockedUntil = new Date(Date.now() + 600000).toISOString();
+      const lockedUntilDate = new Date(Date.now() + 120000); // 2 minutes
+      const slotRef = doc(firebaseDb, 'events', eventId, 'slots', slot.id);
+      await updateDoc(slotRef, {
+        status: 'locked',
+        lockedBy: user.uid,
+        lockedAt: serverTimestamp(),
+        lockedUntil: Timestamp.fromDate(lockedUntilDate),
+      });
       navigation.navigate('Checkout', {
         eventId,
         slotId: slot.id,
-        lockedUntil,
-        slotData: slot,
+        lockedUntil: lockedUntilDate.toISOString(),
+        slotData: { ...slot, status: 'locked', lockedBy: user.uid },
       });
     } catch {
-      show('Connection error. Please try again.', 'error');
+      show('Could not reserve slot. Try again.', 'error');
     } finally {
       setLockingSlotId(null);
     }
