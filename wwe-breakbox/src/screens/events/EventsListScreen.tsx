@@ -23,10 +23,14 @@ type Props = NativeStackScreenProps<EventsStackParamList, 'EventsList'>;
 
 export function EventsListScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
-  const { events, loading: eventLoading } = useEvents();
-  const event = events.find((e) => e.status === 'live') ?? events[0] ?? null;
+  const { events, liveEvents, upcomingEvents, loading: eventLoading } = useEvents();
+  const event = liveEvents[0] ?? events[0] ?? null;
   const eventId = event?.id ?? '';
   const { slots } = useSlots(eventId);
+
+  // Exclude the currently-featured event (if it happens to be upcoming) from the
+  // separate "Upcoming" section so we don't render it twice.
+  const upcomingToList = upcomingEvents.filter((e) => e.id !== event?.id);
 
   const featuredSlots = event?.featuredSlotIds
     ? slots.filter((s) => event.featuredSlotIds.includes(s.id))
@@ -136,6 +140,28 @@ export function EventsListScreen({ navigation }: Props) {
         </View>
       )}
 
+      {/* Upcoming breaks */}
+      {upcomingToList.length > 0 && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>UPCOMING</Text>
+          <Text style={styles.sectionSubtitle}>NEXT BREAKS</Text>
+          {upcomingToList.map((ev) => (
+            <View key={ev.id} style={styles.upcomingCard}>
+              <Text style={styles.upcomingTitle}>{ev.title}</Text>
+              <Text style={styles.upcomingWhen}>{formatEventWhen(ev.opensAt)}</Text>
+              {!!ev.description && (
+                <Text style={styles.upcomingDescription} numberOfLines={2}>
+                  {ev.description}
+                </Text>
+              )}
+              <Text style={styles.upcomingMeta}>
+                {ev.totalSlots} SLOTS
+              </Text>
+            </View>
+          ))}
+        </View>
+      )}
+
       {!event && !eventLoading && (
         <View style={styles.noEvent}>
           <Text style={styles.noEventText}>No upcoming events.</Text>
@@ -144,6 +170,20 @@ export function EventsListScreen({ navigation }: Props) {
       )}
     </ScrollView>
   );
+}
+
+function formatEventWhen(date: Date): string {
+  const dateStr = date.toLocaleDateString(undefined, {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
+  const timeStr = date.toLocaleTimeString(undefined, {
+    hour: 'numeric',
+    minute: '2-digit',
+  });
+  return `${dateStr} • ${timeStr}`;
 }
 
 const styles = StyleSheet.create({
@@ -175,4 +215,37 @@ const styles = StyleSheet.create({
   noEvent: { alignItems: 'center', marginTop: 60 },
   noEventText: { color: theme.colors.textSecondary, fontSize: theme.sizes.md },
   noEventSub: { color: theme.colors.textDimmed, fontSize: theme.sizes.sm, marginTop: 4 },
+  upcomingCard: {
+    backgroundColor: 'rgba(255,255,255,0.04)',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+    padding: theme.spacing.md,
+    marginTop: theme.spacing.sm,
+  },
+  upcomingTitle: {
+    color: theme.colors.textPrimary,
+    fontSize: theme.sizes.md,
+    fontWeight: '900',
+    letterSpacing: 1,
+    fontFamily: 'Oswald_700Bold',
+    marginBottom: 4,
+  },
+  upcomingWhen: {
+    color: theme.colors.gold,
+    fontSize: theme.sizes.xs,
+    letterSpacing: 2,
+    fontFamily: 'Oswald_700Bold',
+    marginBottom: 6,
+  },
+  upcomingDescription: {
+    color: theme.colors.textSecondary,
+    fontSize: theme.sizes.sm,
+    marginBottom: 6,
+  },
+  upcomingMeta: {
+    color: theme.colors.textDimmed,
+    fontSize: theme.sizes.xs,
+    letterSpacing: 2,
+  },
 });
