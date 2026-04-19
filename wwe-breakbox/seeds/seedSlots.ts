@@ -120,6 +120,61 @@ async function setFeaturedSlots(eventId: string, slotIds: string[]): Promise<voi
   console.log(`Set ${topSlots.length} featured slots`);
 }
 
+async function seedUpcomingEvent(): Promise<{ eventId: string; slotCount: number }> {
+  const eventId = db.collection('events').doc().id;
+  const opensAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days from now
+
+  // Pick a small set of slots (top priced) so this seeded event stays cheap.
+  const upcomingSlots = [...SLOTS_DATA]
+    .sort((a, b) => b.price - a.price)
+    .slice(0, 10);
+
+  await db.collection('events').doc(eventId).set({
+    title: "Next Week's Break",
+    description: 'Upcoming WWE Topps Chrome break — queue up your slot now before it goes live.',
+    status: 'upcoming',
+    opensAt: admin.firestore.Timestamp.fromDate(opensAt),
+    closesAt: null,
+    imageUrl: null,
+    totalSlots: upcomingSlots.length,
+    soldSlots: 0,
+    featuredSlotIds: [],
+    createdAt: admin.firestore.FieldValue.serverTimestamp(),
+  });
+
+  const slotsRef = db.collection('events').doc(eventId).collection('slots');
+  const batch = db.batch();
+  const slotIds: string[] = [];
+
+  for (const slotData of upcomingSlots) {
+    const slotId = generateSlotId();
+    slotIds.push(slotId);
+    batch.set(slotsRef.doc(slotId), {
+      wrestlerName: slotData.wrestlerName,
+      members: slotData.members,
+      brand: slotData.brand,
+      price: slotData.price,
+      tier: deriveTier(slotData.price),
+      status: 'available',
+      lockedBy: null,
+      lockedAt: null,
+      lockedUntil: null,
+      purchasedBy: null,
+      purchasedAt: null,
+      imageUrl: null,
+    });
+  }
+
+  await batch.commit();
+
+  await db.collection('events').doc(eventId).update({
+    featuredSlotIds: slotIds.slice(0, 4),
+  });
+
+  console.log(`Created upcoming event: ${eventId} with ${slotIds.length} slots`);
+  return { eventId, slotCount: slotIds.length };
+}
+
 async function main() {
   try {
     console.log('Starting seed...');
@@ -128,6 +183,11 @@ async function main() {
     await setFeaturedSlots(eventId, slotIds);
     console.log(`\nSeed complete! Event ID: ${eventId}`);
     console.log(`Total slots seeded: ${slotIds.length}`);
+
+    // Also seed a second, upcoming event so the Events page can surface it.
+    const upcoming = await seedUpcomingEvent();
+    console.log(`Upcoming event ID: ${upcoming.eventId} (${upcoming.slotCount} slots)`);
+
     process.exit(0);
   } catch (error) {
     console.error('Seed failed:', error);
