@@ -16,10 +16,12 @@ interface FeaturedSlotCardProps {
 export function FeaturedSlotCard({ slot, onPress }: FeaturedSlotCardProps) {
   const brandConfig = BRAND_CONFIG[slot.brand];
   const isSold = slot.status === 'sold';
+  const isClosed = slot.status === 'closed';
+  const isDimmed = isSold || isClosed;
 
   return (
-    <TouchableOpacity onPress={onPress} activeOpacity={0.8} disabled={isSold}>
-      <GlassCard style={[styles.card, isSold && styles.sold]}>
+    <TouchableOpacity onPress={onPress} activeOpacity={0.8} disabled={isDimmed}>
+      <GlassCard style={[styles.card, isDimmed && styles.dimmed]}>
         <View style={[styles.brandHeader, { backgroundColor: brandConfig.bgColor }]}>
           <Text style={[styles.brand, { color: brandConfig.color }]}>{brandConfig.label}</Text>
         </View>
@@ -27,7 +29,8 @@ export function FeaturedSlotCard({ slot, onPress }: FeaturedSlotCardProps) {
           <Text style={styles.name} numberOfLines={2}>{slot.wrestlerName}</Text>
           <TierBadge tier={slot.tier} />
           <Text style={styles.price}>${slot.price.toLocaleString()}</Text>
-          {isSold && <Text style={styles.claimedLabel}>CLAIMED</Text>}
+          {isSold && <Text style={styles.statusLabel}>CLAIMED</Text>}
+          {isClosed && <Text style={styles.statusLabel}>CLOSED</Text>}
         </View>
       </GlassCard>
     </TouchableOpacity>
@@ -36,11 +39,11 @@ export function FeaturedSlotCard({ slot, onPress }: FeaturedSlotCardProps) {
 
 const styles = StyleSheet.create({
   card: { width: CARD_WIDTH, marginRight: theme.spacing.sm },
-  sold: { opacity: 0.5 },
+  dimmed: { opacity: 0.5 },
   brandHeader: { paddingHorizontal: 10, paddingVertical: 4 },
   brand: { fontSize: theme.sizes.xs, fontWeight: '700', letterSpacing: 2 },
   body: { padding: 10, gap: 4 },
   name: { color: theme.colors.textPrimary, fontSize: theme.sizes.xs, fontWeight: '700' },
   price: { color: theme.colors.gold, fontSize: theme.sizes.md, fontWeight: '900', marginTop: 4 },
-  claimedLabel: { color: theme.colors.textDimmed, fontSize: theme.sizes.xs, fontWeight: '700', letterSpacing: 2 },
+  statusLabel: { color: theme.colors.textDimmed, fontSize: theme.sizes.xs, fontWeight: '700', letterSpacing: 2 },
 });

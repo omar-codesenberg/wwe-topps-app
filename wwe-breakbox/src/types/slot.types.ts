@@ -1,5 +1,5 @@
 import { Brand } from '../constants/brands';
-export type SlotStatus = 'available' | 'locked' | 'sold';
+export type SlotStatus = 'available' | 'locked' | 'sold' | 'closed';
 export type Tier = 'Gold' | 'Silver' | 'Bronze';
 export interface SlotSeedItem {
   wrestlerName: string;

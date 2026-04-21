@@ -1,5 +1,12 @@
 {
   "projects": {
     "default": "breakbox-wwe"
+  },
+  "targets": {
+    "breakbox-wwe": {
+      "hosting": {
+        "admin": ["breakbox-wwe-admin"]
+      }
+    }
   }
 }

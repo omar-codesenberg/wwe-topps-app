@@ -6,3 +6,9 @@ export { lockSlot } from './lockSlot';
 export { purchaseSlot } from './purchaseSlot';
 export { releaseSlotOnCancel } from './releaseSlotOnCancel';
 export { releaseExpiredLocks } from './releaseExpiredLocks';
+
+// Admin-only callables (gated by `admin: true` custom claim).
+export { createEventWithSlots } from './admin/createEventWithSlots';
+export { setSlotClosed } from './admin/setSlotClosed';
+export { setSlotBrand } from './admin/setSlotBrand';
+export { setUserLegacy } from './admin/setUserLegacy';

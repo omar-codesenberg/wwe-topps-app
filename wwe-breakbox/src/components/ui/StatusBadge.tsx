@@ -25,6 +25,13 @@ export function StatusBadge({ status, isMyLock }: StatusBadgeProps) {
       </View>
     );
   }
+  if (status === 'closed') {
+    return (
+      <View style={[styles.badge, styles.closed]}>
+        <Text style={[styles.text, { color: theme.colors.textDimmed }]}>CLOSED</Text>
+      </View>
+    );
+  }
   return (
     <View style={[styles.badge, styles.sold]}>
       <Text style={[styles.text, { color: theme.colors.textDimmed }]}>CLAIMED</Text>
@@ -48,6 +55,10 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(34,197,94,0.3)',
   },
   sold: {
+    backgroundColor: 'rgba(102,102,102,0.15)',
+    borderColor: 'rgba(102,102,102,0.3)',
+  },
+  closed: {
     backgroundColor: 'rgba(102,102,102,0.15)',
     borderColor: 'rgba(102,102,102,0.3)',
   },
