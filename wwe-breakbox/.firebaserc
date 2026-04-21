@@ -5,8 +5,11 @@
   "targets": {
     "breakbox-wwe": {
       "hosting": {
-        "admin": ["breakbox-wwe-admin"]
+        "admin": [
+          "breakbox-wwe-admin"
+        ]
       }
     }
-  }
+  },
+  "etags": {}
 }
