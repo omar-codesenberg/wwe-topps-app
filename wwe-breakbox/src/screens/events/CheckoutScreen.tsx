@@ -41,7 +41,22 @@ export function CheckoutScreen({ route, navigation }: Props) {
   const lockedUntilDate = new Date(lockedUntil);
   const { secondsRemaining } = useCountdown(lockedUntilDate, () => {
     setIsExpired(true);
+    releaseSlot();
   });
+
+  const releaseSlot = async () => {
+    try {
+      const slotRef = doc(firebaseDb, 'events', eventId, 'slots', slotId);
+      await updateDoc(slotRef, {
+        status: 'available',
+        lockedBy: null,
+        lockedAt: null,
+        lockedUntil: null,
+      });
+    } catch {
+      // Lock will expire automatically
+    }
+  };
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('beforeRemove', (e) => {
@@ -49,6 +64,7 @@ export function CheckoutScreen({ route, navigation }: Props) {
         e.preventDefault();
         return;
       }
+      releaseSlot();
       clear();
     });
     return unsubscribe;
@@ -117,7 +133,8 @@ export function CheckoutScreen({ route, navigation }: Props) {
     }
   };
 
-  const handleCancel = () => {
+  const handleCancel = async () => {
+    await releaseSlot();
     clear();
     navigation.goBack();
   };
