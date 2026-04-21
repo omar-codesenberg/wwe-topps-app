@@ -19,13 +19,15 @@ export function SlotCard({ slot, currentUserId, onBuySpot, isLocking }: SlotCard
   const isAvailable = slot.status === 'available';
   const isSold = slot.status === 'sold';
   const isLocked = slot.status === 'locked';
+  const isClosed = slot.status === 'closed';
   const isMyLock = slot.status === 'locked' && slot.lockedBy === currentUserId;
+  const isDimmed = isSold || isClosed;
   const brandColor = BRAND_CONFIG[slot.brand].color;
 
   // Pulse animation for locked-by-others slots
   const pulseAnim = useRef(new Animated.Value(1)).current;
-  // Fade for sold slots
-  const fadeAnim = useRef(new Animated.Value(isSold ? 0.45 : 1)).current;
+  // Fade for sold/closed slots
+  const fadeAnim = useRef(new Animated.Value(isDimmed ? 0.45 : 1)).current;
 
   useEffect(() => {
     if (isLocked && !isMyLock) {
@@ -42,20 +44,20 @@ export function SlotCard({ slot, currentUserId, onBuySpot, isLocking }: SlotCard
   }, [isLocked, isMyLock]);
 
   useEffect(() => {
-    if (isSold) {
+    if (isDimmed) {
       Animated.timing(fadeAnim, { toValue: 0.45, duration: 400, useNativeDriver: true }).start();
     } else {
       Animated.timing(fadeAnim, { toValue: 1, duration: 200, useNativeDriver: true }).start();
     }
-  }, [isSold]);
+  }, [isDimmed]);
 
   return (
     <Animated.View style={{ opacity: fadeAnim }}>
-      <GlassCard style={[styles.card, (isSold) && styles.soldCard]}>
+      <GlassCard style={[styles.card, isDimmed && styles.dimmedCard]}>
         <View style={[styles.brandBar, { backgroundColor: brandColor }]} />
         <View style={styles.content}>
           <View style={styles.left}>
-            <Text style={[styles.name, isSold && styles.dimmedText]} numberOfLines={2}>
+            <Text style={[styles.name, isDimmed && styles.dimmedText]} numberOfLines={2}>
               {slot.wrestlerName}
             </Text>
             {slot.members.length > 0 && (
@@ -69,7 +71,7 @@ export function SlotCard({ slot, currentUserId, onBuySpot, isLocking }: SlotCard
             </View>
           </View>
           <View style={styles.right}>
-            <Text style={[styles.price, isSold && styles.dimmedText]}>
+            <Text style={[styles.price, isDimmed && styles.dimmedText]}>
               ${slot.price.toLocaleString()}
             </Text>
             {isAvailable && (
@@ -103,7 +105,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     overflow: 'hidden',
   },
-  soldCard: { opacity: 0.5 },
+  dimmedCard: { opacity: 0.5 },
   brandBar: { width: 4 },
   content: {
     flex: 1,
