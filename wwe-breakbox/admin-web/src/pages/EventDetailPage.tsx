@@ -6,7 +6,7 @@ import {
   subscribeToEventPurchases,
   fetchUser,
 } from '../lib/firestore';
-import { setSlotClosed, setSlotBrand } from '../lib/adminApi';
+import { setSlotClosed, setSlotBrand, startEvent } from '../lib/adminApi';
 import { formatDateTime, formatMoney } from '../lib/format';
 import { BRANDS, type Brand, type BreakEvent, type Purchase, type Slot, type UserProfile } from '../lib/types';
 
@@ -16,6 +16,7 @@ export function EventDetailPage() {
   const [slots, setSlots] = useState<Slot[]>([]);
   const [purchases, setPurchases] = useState<Purchase[]>([]);
   const [pendingSlotId, setPendingSlotId] = useState<string | null>(null);
+  const [startingEvent, setStartingEvent] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -43,6 +44,20 @@ export function EventDetailPage() {
     }
   }
 
+  async function handleStart() {
+    if (!eventId) return;
+    if (!window.confirm(`Start "${event!.title}" now? This will open slots for purchase.`)) return;
+    setError(null);
+    setStartingEvent(true);
+    try {
+      await startEvent({ eventId });
+    } catch (err: any) {
+      setError(err?.message ?? 'Failed to start event.');
+    } finally {
+      setStartingEvent(false);
+    }
+  }
+
   async function handleBrand(slot: Slot, brand: Brand) {
     if (!eventId) return;
     setError(null);
@@ -63,6 +78,11 @@ export function EventDetailPage() {
         <span className="muted">Opens {formatDateTime(event.opensAt)}</span>
         <span className="muted">·</span>
         <span className="muted">{event.soldSlots} / {event.totalSlots} sold</span>
+        {event.status === 'upcoming' && (
+          <button onClick={handleStart} disabled={startingEvent} style={{ marginLeft: 12 }}>
+            {startingEvent ? 'Starting…' : 'Start event'}
+          </button>
+        )}
       </div>
 
       {error && <div className="error" style={{ marginBottom: 12 }}>{error}</div>}

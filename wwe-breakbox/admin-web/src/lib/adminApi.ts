@@ -14,6 +14,11 @@ export const createEventWithSlots = httpsCallable<
   { eventId: string; slotCount: number }
 >(firebaseFunctions, 'createEventWithSlots');
 
+export const startEvent = httpsCallable<
+  { eventId: string },
+  { success: true }
+>(firebaseFunctions, 'startEvent');
+
 export const setSlotClosed = httpsCallable<
   { eventId: string; slotId: string; closed: boolean },
   { success: true }
