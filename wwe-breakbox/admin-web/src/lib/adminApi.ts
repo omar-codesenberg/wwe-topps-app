@@ -19,6 +19,11 @@ export const startEvent = httpsCallable<
   { success: true }
 >(firebaseFunctions, 'startEvent');
 
+export const closeEvent = httpsCallable<
+  { eventId: string },
+  { success: true }
+>(firebaseFunctions, 'closeEvent');
+
 export const setSlotClosed = httpsCallable<
   { eventId: string; slotId: string; closed: boolean },
   { success: true }

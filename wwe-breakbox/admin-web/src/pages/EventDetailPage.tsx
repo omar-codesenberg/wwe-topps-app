@@ -6,7 +6,7 @@ import {
   subscribeToEventPurchases,
   fetchUser,
 } from '../lib/firestore';
-import { setSlotClosed, setSlotBrand, startEvent } from '../lib/adminApi';
+import { setSlotClosed, setSlotBrand, startEvent, closeEvent } from '../lib/adminApi';
 import { formatDateTime, formatMoney } from '../lib/format';
 import { BRANDS, type Brand, type BreakEvent, type Purchase, type Slot, type UserProfile } from '../lib/types';
 
@@ -17,6 +17,7 @@ export function EventDetailPage() {
   const [purchases, setPurchases] = useState<Purchase[]>([]);
   const [pendingSlotId, setPendingSlotId] = useState<string | null>(null);
   const [startingEvent, setStartingEvent] = useState(false);
+  const [closingEvent, setClosingEvent] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -58,6 +59,25 @@ export function EventDetailPage() {
     }
   }
 
+  async function handleEndEvent() {
+    if (!eventId) return;
+    if (
+      !window.confirm(
+        `End "${event!.title}" and mark it completed? Users will no longer be able to claim remaining slots.`
+      )
+    )
+      return;
+    setError(null);
+    setClosingEvent(true);
+    try {
+      await closeEvent({ eventId });
+    } catch (err: any) {
+      setError(err?.message ?? 'Failed to end event.');
+    } finally {
+      setClosingEvent(false);
+    }
+  }
+
   async function handleBrand(slot: Slot, brand: Brand) {
     if (!eventId) return;
     setError(null);
@@ -81,6 +101,16 @@ export function EventDetailPage() {
         {event.status === 'upcoming' && (
           <button onClick={handleStart} disabled={startingEvent} style={{ marginLeft: 12 }}>
             {startingEvent ? 'Starting…' : 'Start event'}
+          </button>
+        )}
+        {event.status === 'live' && (
+          <button
+            className="danger"
+            onClick={handleEndEvent}
+            disabled={closingEvent}
+            style={{ marginLeft: 12 }}
+          >
+            {closingEvent ? 'Ending…' : 'End event'}
           </button>
         )}
       </div>
