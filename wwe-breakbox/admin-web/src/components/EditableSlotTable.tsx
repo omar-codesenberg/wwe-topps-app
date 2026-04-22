@@ -18,7 +18,7 @@ export function EditableSlotTable({ drafts, onChange }: Props) {
   }
 
   return (
-    <div className="card scroll-x" style={{ padding: 0, maxHeight: 520, overflowY: 'auto' }}>
+    <div className="card editable-slots-table" style={{ padding: 0, maxHeight: 520, overflowY: 'auto' }}>
       <table>
         <thead>
           <tr>
@@ -26,22 +26,22 @@ export function EditableSlotTable({ drafts, onChange }: Props) {
             <th>Wrestler / Group</th>
             <th>Members</th>
             <th style={{ width: 110 }}>Price</th>
-            <th style={{ width: 140 }}>Brand</th>
+            <th style={{ width: 200 }}>Brand</th>
             <th style={{ width: 60 }}></th>
           </tr>
         </thead>
         <tbody>
           {drafts.map((d, i) => (
-            <tr key={i}>
-              <td className="muted">{i + 1}</td>
-              <td>
+            <tr key={i} data-brand={d.brand}>
+              <td data-label="#" className="muted">{i + 1}</td>
+              <td data-label="Wrestler / Group">
                 <input
                   value={d.wrestlerName}
                   onChange={(e) => update(i, { wrestlerName: e.target.value })}
                   style={{ width: '100%' }}
                 />
               </td>
-              <td>
+              <td data-label="Members">
                 <input
                   value={d.members.join(', ')}
                   onChange={(e) =>
@@ -56,7 +56,7 @@ export function EditableSlotTable({ drafts, onChange }: Props) {
                   style={{ width: '100%' }}
                 />
               </td>
-              <td>
+              <td data-label="Price">
                 <input
                   type="number"
                   value={d.price}
@@ -65,19 +65,29 @@ export function EditableSlotTable({ drafts, onChange }: Props) {
                   style={{ width: '100%' }}
                 />
               </td>
-              <td>
-                <select
-                  value={d.brand}
-                  onChange={(e) => update(i, { brand: e.target.value as Brand })}
-                  style={{ width: '100%' }}
-                >
-                  {BRANDS.map((b) => (
-                    <option key={b} value={b}>{b}</option>
-                  ))}
-                </select>
+              <td data-label="Brand">
+                <div className="brand-field">
+                  <select
+                    value={d.brand}
+                    onChange={(e) => update(i, { brand: e.target.value as Brand })}
+                  >
+                    {BRANDS.map((b) => (
+                      <option key={b} value={b}>{b}</option>
+                    ))}
+                  </select>
+                  <span className={`brand ${d.brand}`}>{d.brand}</span>
+                </div>
               </td>
-              <td>
-                <button className="ghost" onClick={() => remove(i)} title="Remove row">×</button>
+              <td data-label="action">
+                <button
+                  type="button"
+                  className="ghost remove-btn"
+                  onClick={() => remove(i)}
+                  title="Remove row"
+                  aria-label={`Remove slot ${i + 1}`}
+                >
+                  ×
+                </button>
               </td>
             </tr>
           ))}
