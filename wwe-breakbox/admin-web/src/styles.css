@@ -132,6 +132,23 @@ nav.crumbs a { color: var(--text-dim); }
 
 .scroll-x { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 
+/* Editable slot table — compound brand cell */
+.brand-field { display: flex; align-items: center; gap: 8px; }
+.brand-field select { flex: 1; min-width: 0; }
+.brand-field .brand { flex-shrink: 0; }
+
+/* Left border color tint per brand (desktop row) */
+.editable-slots-table tr[data-brand] td:first-child {
+  border-left: 3px solid transparent;
+  padding-left: 10px;
+}
+.editable-slots-table tr[data-brand="RAW"] td:first-child { border-left-color: #ff6666; }
+.editable-slots-table tr[data-brand="SMACKDOWN"] td:first-child { border-left-color: #6aa6ff; }
+.editable-slots-table tr[data-brand="NXT"] td:first-child { border-left-color: var(--gold); }
+.editable-slots-table tr[data-brand="LEGENDS"] td:first-child { border-left-color: #c084fc; }
+
+.editable-slots-table .remove-btn { padding: 4px 10px; font-size: 16px; line-height: 1; }
+
 @media (max-width: 640px) {
   .app-header {
     flex-direction: column;
@@ -194,4 +211,79 @@ nav.crumbs a { color: var(--text-dim); }
   .stack-mobile > .button-group > button { width: 100%; }
   .stack-mobile > a { width: 100%; display: block; }
   .stack-mobile > .row { flex-wrap: wrap; }
+
+  /* Transform editable slot table into stacked cards on mobile */
+  .editable-slots-table {
+    padding: 8px !important;
+  }
+  .editable-slots-table table,
+  .editable-slots-table tbody {
+    display: block;
+    width: 100%;
+  }
+  .editable-slots-table thead { display: none; }
+  .editable-slots-table tr {
+    display: block;
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-left-width: 4px;
+    border-radius: 8px;
+    padding: 12px 12px 8px;
+    margin-bottom: 8px;
+    position: relative;
+  }
+  .editable-slots-table tr[data-brand="RAW"] { border-left-color: #ff6666; }
+  .editable-slots-table tr[data-brand="SMACKDOWN"] { border-left-color: #6aa6ff; }
+  .editable-slots-table tr[data-brand="NXT"] { border-left-color: var(--gold); }
+  .editable-slots-table tr[data-brand="LEGENDS"] { border-left-color: #c084fc; }
+  .editable-slots-table td {
+    display: block;
+    width: 100%;
+    padding: 6px 0;
+    border-bottom: 0;
+    white-space: normal;
+  }
+  .editable-slots-table td::before {
+    content: attr(data-label);
+    display: block;
+    font-size: 11px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+  }
+  /* Row number shown as a corner badge */
+  .editable-slots-table td[data-label="#"] {
+    position: absolute;
+    top: 8px;
+    right: 12px;
+    width: auto;
+    padding: 0;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-dim);
+  }
+  .editable-slots-table td[data-label="#"]::before { display: none; }
+  /* Remove border tint via first-child on mobile (we use tr border-left instead) */
+  .editable-slots-table tr[data-brand] td:first-child {
+    border-left: 0;
+    padding-left: 0;
+  }
+  /* Remove button gets its own row, labeled action */
+  .editable-slots-table td[data-label="action"] { padding-top: 8px; }
+  .editable-slots-table td[data-label="action"]::before { display: none; }
+  .editable-slots-table td[data-label="action"] .remove-btn {
+    width: 100%;
+    background: transparent;
+    color: var(--danger);
+    border: 1px solid var(--danger);
+    font-size: 0;
+    padding: 10px;
+    min-height: 40px;
+  }
+  .editable-slots-table td[data-label="action"] .remove-btn::before {
+    content: 'Remove slot';
+    font-size: 14px;
+  }
 }
