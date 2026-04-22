@@ -11,7 +11,7 @@ export function EventsListPage() {
 
   return (
     <div>
-      <div className="row" style={{ marginBottom: 16 }}>
+      <div className="row stack-mobile" style={{ marginBottom: 16 }}>
         <h2 style={{ margin: 0 }}>Events</h2>
         <div className="spacer" />
         <Link to="/events/new"><button>+ Create event</button></Link>
@@ -23,7 +23,7 @@ export function EventsListPage() {
       )}
 
       {events && events.length > 0 && (
-        <div className="card" style={{ padding: 0 }}>
+        <div className="card scroll-x" style={{ padding: 0 }}>
           <table>
             <thead>
               <tr>

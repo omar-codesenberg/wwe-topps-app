@@ -98,28 +98,30 @@ export function UserDetailPage() {
         {purchases.length === 0 ? (
           <div className="muted">No purchases yet.</div>
         ) : (
-          <table>
-            <thead>
-              <tr>
-                <th>Event</th>
-                <th>Wrestler</th>
-                <th>Brand</th>
-                <th>Price</th>
-                <th>Purchased</th>
-              </tr>
-            </thead>
-            <tbody>
-              {purchases.map((p) => (
-                <tr key={p.id}>
-                  <td><Link to={`/events/${p.eventId}`}>{p.eventTitle}</Link></td>
-                  <td>{p.wrestlerName}</td>
-                  <td><span className={`brand ${p.brand}`}>{p.brand}</span></td>
-                  <td>{formatMoney(p.price)}</td>
-                  <td>{formatDateTime(p.purchasedAt)}</td>
+          <div className="scroll-x">
+            <table>
+              <thead>
+                <tr>
+                  <th>Event</th>
+                  <th>Wrestler</th>
+                  <th>Brand</th>
+                  <th>Price</th>
+                  <th>Purchased</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {purchases.map((p) => (
+                  <tr key={p.id}>
+                    <td><Link to={`/events/${p.eventId}`}>{p.eventTitle}</Link></td>
+                    <td>{p.wrestlerName}</td>
+                    <td><span className={`brand ${p.brand}`}>{p.brand}</span></td>
+                    <td>{formatMoney(p.price)}</td>
+                    <td>{formatDateTime(p.purchasedAt)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
     </div>
