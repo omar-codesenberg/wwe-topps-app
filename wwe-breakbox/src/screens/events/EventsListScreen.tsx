@@ -31,6 +31,7 @@ export function EventsListScreen({ navigation }: Props) {
   // Exclude the currently-featured event (if it happens to be upcoming) from the
   // separate "Upcoming" section so we don't render it twice.
   const upcomingToList = upcomingEvents.filter((e) => e.id !== event?.id);
+  const otherLiveEvents = liveEvents.filter((e) => e.id !== event?.id);
 
   const featuredSlots = event?.featuredSlotIds
     ? slots.filter((s) => event.featuredSlotIds.includes(s.id))
@@ -137,6 +138,36 @@ export function EventsListScreen({ navigation }: Props) {
             )}
             contentContainerStyle={styles.featuredList}
           />
+        </View>
+      )}
+
+      {/* Other live events — admin may have started multiple */}
+      {otherLiveEvents.length > 0 && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>LIVE NOW</Text>
+          <Text style={styles.sectionSubtitle}>ENTER TO PICK SLOTS</Text>
+          {otherLiveEvents.map((ev) => (
+            <TouchableOpacity
+              key={ev.id}
+              style={[styles.upcomingCard, styles.liveCard]}
+              onPress={() => navigation.navigate('SlotsRoster', { eventId: ev.id })}
+              activeOpacity={0.8}
+            >
+              <View style={styles.liveBadgeRow}>
+                <View style={styles.liveDot} />
+                <Text style={styles.liveBadgeText}>LIVE</Text>
+              </View>
+              <Text style={styles.upcomingTitle}>{ev.title}</Text>
+              {!!ev.description && (
+                <Text style={styles.upcomingDescription} numberOfLines={2}>
+                  {ev.description}
+                </Text>
+              )}
+              <Text style={styles.upcomingMeta}>
+                {ev.soldSlots}/{ev.totalSlots} CLAIMED • TAP TO ENTER
+              </Text>
+            </TouchableOpacity>
+          ))}
         </View>
       )}
 
@@ -247,5 +278,28 @@ const styles = StyleSheet.create({
     color: theme.colors.textDimmed,
     fontSize: theme.sizes.xs,
     letterSpacing: 2,
+  },
+  liveCard: {
+    borderColor: theme.colors.red,
+    backgroundColor: 'rgba(229, 9, 20, 0.08)',
+  },
+  liveBadgeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  liveDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: theme.colors.red,
+    marginRight: 6,
+  },
+  liveBadgeText: {
+    color: theme.colors.red,
+    fontSize: theme.sizes.xs,
+    fontWeight: '900',
+    letterSpacing: 3,
+    fontFamily: 'Oswald_700Bold',
   },
 });
