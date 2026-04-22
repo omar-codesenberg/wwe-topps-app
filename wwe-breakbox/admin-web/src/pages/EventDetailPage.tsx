@@ -91,25 +91,24 @@ export function EventDetailPage() {
   return (
     <div>
       <nav className="crumbs"><Link to="/">Events</Link> / {event.title}</nav>
-      <div className="row" style={{ marginBottom: 8 }}>
-        <h2 style={{ margin: 0 }}>{event.title}</h2>
-        <span className={`badge ${event.status}`}>{event.status}</span>
+      <div className="row stack-mobile" style={{ marginBottom: 8 }}>
+        <div className="row" style={{ gap: 8 }}>
+          <h2 style={{ margin: 0 }}>{event.title}</h2>
+          <span className={`badge ${event.status}`}>{event.status}</span>
+        </div>
         <div className="spacer" />
-        <span className="muted">Opens {formatDateTime(event.opensAt)}</span>
-        <span className="muted">·</span>
-        <span className="muted">{event.soldSlots} / {event.totalSlots} sold</span>
+        <div className="row" style={{ gap: 8, color: 'var(--text-dim)', fontSize: 13 }}>
+          <span>Opens {formatDateTime(event.opensAt)}</span>
+          <span>·</span>
+          <span>{event.soldSlots} / {event.totalSlots} sold</span>
+        </div>
         {event.status === 'upcoming' && (
-          <button onClick={handleStart} disabled={startingEvent} style={{ marginLeft: 12 }}>
+          <button onClick={handleStart} disabled={startingEvent}>
             {startingEvent ? 'Starting…' : 'Start event'}
           </button>
         )}
         {event.status === 'live' && (
-          <button
-            className="danger"
-            onClick={handleEndEvent}
-            disabled={closingEvent}
-            style={{ marginLeft: 12 }}
-          >
+          <button className="danger" onClick={handleEndEvent} disabled={closingEvent}>
             {closingEvent ? 'Ending…' : 'End event'}
           </button>
         )}
@@ -119,7 +118,7 @@ export function EventDetailPage() {
 
       <div className="card">
         <h2>Slots ({slots.length})</h2>
-        <div style={{ maxHeight: 600, overflow: 'auto' }}>
+        <div className="scroll-x" style={{ maxHeight: 600, overflowY: 'auto' }}>
           <table>
             <thead>
               <tr>
@@ -200,38 +199,40 @@ function PurchasesPanel({ purchases }: { purchases: Purchase[] }) {
       {purchases.length === 0 ? (
         <div className="muted">No purchases yet.</div>
       ) : (
-        <table>
-          <thead>
-            <tr>
-              <th>Username</th>
-              <th>Wrestler</th>
-              <th>Price</th>
-              <th>Purchased</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            {purchases.map((p) => {
-              const user = users[p.userId];
-              return (
-                <tr key={p.id}>
-                  <td>
-                    {user ? (
-                      <Link to={`/users/${p.userId}`}>{user.username || user.email || p.userId}</Link>
-                    ) : (
-                      <Link to={`/users/${p.userId}`}>{p.userId.slice(0, 8)}…</Link>
-                    )}
-                    {user?.legacyUser && <span className="badge sold" style={{ marginLeft: 6 }}>LEGACY</span>}
-                  </td>
-                  <td>{p.wrestlerName}</td>
-                  <td>{formatMoney(p.price)}</td>
-                  <td>{formatDateTime(p.purchasedAt)}</td>
-                  <td><Link to={`/users/${p.userId}`} className="muted">Open user →</Link></td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+        <div className="scroll-x">
+          <table>
+            <thead>
+              <tr>
+                <th>Username</th>
+                <th>Wrestler</th>
+                <th>Price</th>
+                <th>Purchased</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {purchases.map((p) => {
+                const user = users[p.userId];
+                return (
+                  <tr key={p.id}>
+                    <td>
+                      {user ? (
+                        <Link to={`/users/${p.userId}`}>{user.username || user.email || p.userId}</Link>
+                      ) : (
+                        <Link to={`/users/${p.userId}`}>{p.userId.slice(0, 8)}…</Link>
+                      )}
+                      {user?.legacyUser && <span className="badge sold" style={{ marginLeft: 6 }}>LEGACY</span>}
+                    </td>
+                    <td>{p.wrestlerName}</td>
+                    <td>{formatMoney(p.price)}</td>
+                    <td>{formatDateTime(p.purchasedAt)}</td>
+                    <td><Link to={`/users/${p.userId}`} className="muted">Open user →</Link></td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   );

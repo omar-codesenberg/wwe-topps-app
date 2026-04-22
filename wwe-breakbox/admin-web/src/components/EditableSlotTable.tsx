@@ -18,7 +18,7 @@ export function EditableSlotTable({ drafts, onChange }: Props) {
   }
 
   return (
-    <div className="card" style={{ padding: 0, maxHeight: 520, overflow: 'auto' }}>
+    <div className="card scroll-x" style={{ padding: 0, maxHeight: 520, overflowY: 'auto' }}>
       <table>
         <thead>
           <tr>

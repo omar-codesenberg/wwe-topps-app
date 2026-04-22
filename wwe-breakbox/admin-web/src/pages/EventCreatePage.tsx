@@ -100,7 +100,7 @@ export function EventCreatePage() {
 
         {error && <div className="error">{error}</div>}
 
-        <div className="row">
+        <div className="row stack-mobile">
           <Link to="/"><button type="button" className="secondary">Cancel</button></Link>
           <div className="spacer" />
           <button type="submit" disabled={submitting || drafts.length === 0}>
