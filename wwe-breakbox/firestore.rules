@@ -26,8 +26,16 @@ service cloud.firestore {
       // legacyUser flips happen via setUserLegacy callable (admin SDK bypasses rules).
     }
     match /purchases/{purchaseId} {
-      allow read: if request.auth != null
-                  && (request.auth.uid == resource.data.userId || isAdmin());
+      // Split get from list (same reasoning as /users): the per-doc branch
+      // reads resource.data.userId which Firestore can only statically prove
+      // when the query itself constrains userId. Admin listings by eventId
+      // don't carry that constraint, so we make the admin intent explicit.
+      allow get: if request.auth != null
+                 && (request.auth.uid == resource.data.userId || isAdmin());
+      allow list: if isAdmin()
+                  || (request.auth != null
+                      && request.query.limit <= 1000
+                      && resource.data.userId == request.auth.uid);
       allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
     }
   }
