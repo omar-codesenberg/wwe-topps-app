@@ -16,7 +16,12 @@ service cloud.firestore {
       }
     }
     match /users/{userId} {
-      allow read: if request.auth != null && (request.auth.uid == userId || isAdmin());
+      // Split get from list: get is per-doc (self or admin), list is admin-only.
+      // Collection list queries can be rejected by Firestore's rule engine even when
+      // isAdmin() is OR'd in, because the other branch depends on the {userId} path
+      // variable — splitting makes the admin intent explicit.
+      allow get: if request.auth != null && (request.auth.uid == userId || isAdmin());
+      allow list: if isAdmin();
       allow write: if request.auth != null && request.auth.uid == userId;
       // legacyUser flips happen via setUserLegacy callable (admin SDK bypasses rules).
     }
