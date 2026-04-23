@@ -43,7 +43,7 @@ export const firebaseAuth = authInstance;
 export const firebaseDb = getFirestore(app);
 export const firebaseFunctions = getFunctions(app);
 
-if (Platform.OS === 'web') {
+if (Platform.OS === 'web' && process.env.EXPO_PUBLIC_USE_EMULATORS === '1') {
   connectFunctionsEmulator(firebaseFunctions, 'localhost', 5001);
 }
 
