@@ -30,7 +30,7 @@ function groupByEvent(purchases: Purchase[]): { title: string; data: Purchase[] 
 export function MyPurchasesScreen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
-  const { purchases, loading } = usePurchases();
+  const { purchases, loading, error } = usePurchases();
 
   const sections = groupByEvent(purchases);
   const totalSpent = purchases.reduce((sum, p) => sum + p.price, 0);
@@ -39,6 +39,16 @@ export function MyPurchasesScreen() {
     return (
       <View style={styles.centered}>
         <ActivityIndicator color={theme.colors.red} size="large" />
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={[styles.empty, { paddingTop: insets.top + 32 }]}>
+        <Text style={styles.emptyIcon}>⚠️</Text>
+        <Text style={styles.emptyTitle}>COULDN'T LOAD PURCHASES</Text>
+        <Text style={styles.emptySub}>{error.message}</Text>
       </View>
     );
   }
