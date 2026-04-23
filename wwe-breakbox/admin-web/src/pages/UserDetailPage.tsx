@@ -68,7 +68,7 @@ export function UserDetailPage() {
               <div style={{ whiteSpace: 'pre-line' }}>
                 {addr.line1}{'\n'}
                 {addr.line2 ? `${addr.line2}\n` : ''}
-                {addr.city}, {addr.state} {addr.postalCode}{'\n'}
+                {addr.city}, {addr.province} {addr.postalCode}{'\n'}
                 {addr.country}
               </div>
             ) : (

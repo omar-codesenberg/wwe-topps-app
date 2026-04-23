@@ -25,7 +25,7 @@ interface FormState {
     line1: string;
     line2: string;
     city: string;
-    state: string;
+    province: string;
     postalCode: string;
     country: string;
   };
@@ -36,7 +36,7 @@ const EMPTY_FORM: FormState = {
   lastName: '',
   username: '',
   wantBaseCards: true,
-  address: { line1: '', line2: '', city: '', state: '', postalCode: '', country: '' },
+  address: { line1: '', line2: '', city: '', province: '', postalCode: '', country: '' },
 };
 
 export function ProfileScreen() {
@@ -54,7 +54,9 @@ export function ProfileScreen() {
     const unsub = onSnapshot(doc(firebaseDb, 'users', user.uid), (snap) => {
       const data = snap.data();
       if (data) {
-        const shipping: ShippingAddress | null = data.shippingAddress ?? null;
+        const shipping = (data.shippingAddress ?? null) as
+          | (Partial<ShippingAddress> & { state?: string })
+          | null;
         setEmail(data.email ?? user.email ?? '');
         setForm({
           firstName: data.firstName ?? '',
@@ -65,7 +67,7 @@ export function ProfileScreen() {
             line1: shipping?.line1 ?? '',
             line2: shipping?.line2 ?? '',
             city: shipping?.city ?? '',
-            state: shipping?.state ?? '',
+            province: shipping?.province ?? shipping?.state ?? '',
             postalCode: shipping?.postalCode ?? '',
             country: shipping?.country ?? '',
           },
@@ -87,14 +89,14 @@ export function ProfileScreen() {
       const shipping: ShippingAddress | null =
         form.address.line1 ||
         form.address.city ||
-        form.address.state ||
+        form.address.province ||
         form.address.postalCode ||
         form.address.country
           ? {
               line1: form.address.line1,
               line2: form.address.line2 || undefined,
               city: form.address.city,
-              state: form.address.state,
+              province: form.address.province,
               postalCode: form.address.postalCode,
               country: form.address.country,
             }
@@ -217,12 +219,12 @@ export function ProfileScreen() {
           />
         </View>
         <View style={[styles.section, styles.flex1]}>
-          <Text style={styles.label}>STATE</Text>
+          <Text style={styles.label}>PROVINCE</Text>
           <TextInput
             style={styles.input}
-            value={form.address.state}
-            onChangeText={(v) => updateAddress('state', v)}
-            placeholder="State"
+            value={form.address.province}
+            onChangeText={(v) => updateAddress('province', v)}
+            placeholder="Province"
             placeholderTextColor={theme.colors.textDimmed}
           />
         </View>

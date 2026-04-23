@@ -88,7 +88,16 @@ function docToUser(snap: DocumentSnapshot<DocumentData>): UserProfile | null {
     firstName: d.firstName ?? '',
     lastName: d.lastName ?? '',
     username: d.username ?? '',
-    shippingAddress: d.shippingAddress ?? null,
+    shippingAddress: d.shippingAddress
+      ? {
+          line1: d.shippingAddress.line1 ?? '',
+          line2: d.shippingAddress.line2,
+          city: d.shippingAddress.city ?? '',
+          province: d.shippingAddress.province ?? d.shippingAddress.state ?? '',
+          postalCode: d.shippingAddress.postalCode ?? '',
+          country: d.shippingAddress.country ?? '',
+        }
+      : null,
     wantBaseCards: d.wantBaseCards ?? false,
     legacyUser: d.legacyUser ?? false,
     balance: d.balance ?? 0,
