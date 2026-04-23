@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.setUserLegacy = exports.setSlotBrand = exports.setSlotClosed = exports.createEventWithSlots = exports.releaseExpiredLocks = exports.releaseSlotOnCancel = exports.purchaseSlot = exports.lockSlot = void 0;
+exports.setUserLegacy = exports.setSlotBrand = exports.setSlotClosed = exports.closeEvent = exports.startEvent = exports.createEventWithSlots = exports.releaseExpiredLocks = exports.releaseSlotOnCancel = exports.purchaseSlot = exports.lockSlot = void 0;
 // Region note: functions currently deploy to the default us-central1 region.
 // To target a different region (e.g. us-east1), wrap each function with
 // functions.region('us-east1').runWith({...}).https.onCall(...)
@@ -16,6 +16,10 @@ Object.defineProperty(exports, "releaseExpiredLocks", { enumerable: true, get: f
 // Admin-only callables (gated by `admin: true` custom claim).
 var createEventWithSlots_1 = require("./admin/createEventWithSlots");
 Object.defineProperty(exports, "createEventWithSlots", { enumerable: true, get: function () { return createEventWithSlots_1.createEventWithSlots; } });
+var startEvent_1 = require("./admin/startEvent");
+Object.defineProperty(exports, "startEvent", { enumerable: true, get: function () { return startEvent_1.startEvent; } });
+var closeEvent_1 = require("./admin/closeEvent");
+Object.defineProperty(exports, "closeEvent", { enumerable: true, get: function () { return closeEvent_1.closeEvent; } });
 var setSlotClosed_1 = require("./admin/setSlotClosed");
 Object.defineProperty(exports, "setSlotClosed", { enumerable: true, get: function () { return setSlotClosed_1.setSlotClosed; } });
 var setSlotBrand_1 = require("./admin/setSlotBrand");

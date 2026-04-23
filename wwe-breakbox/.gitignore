@@ -45,3 +45,10 @@ google-services.json
 GoogleService-Info.plist
 .env
 seeds/serviceAccount.json
+
+# Firebase
+.firebase/
+firebase-debug.log
+
+# Claude Code
+.claude/worktrees/

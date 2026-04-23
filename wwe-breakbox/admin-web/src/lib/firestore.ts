@@ -169,7 +169,7 @@ export async function fetchUsersPage(
   // @ts-expect-error — query signature accepts a variadic list of constraints
   const q = query(...parts);
   const snap = await getDocs(q);
-  const docs = snap.docs;
+  const docs = snap.docs as QueryDocumentSnapshot<DocumentData>[];
   const hasMore = docs.length > pageSize;
   const pageDocs = docs.slice(0, pageSize);
   const users = pageDocs
