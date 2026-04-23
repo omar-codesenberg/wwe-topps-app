@@ -61,6 +61,17 @@ tr:hover td { background: var(--bg-elev); }
   padding: 12px 24px; border-bottom: 1px solid var(--border); background: var(--bg-elev);
 }
 .app-header h1 { font-size: 18px; margin: 0; letter-spacing: 1px; }
+.app-nav { display: flex; gap: 4px; flex: 1; justify-content: center; }
+.app-nav a {
+  color: var(--text-dim);
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+.app-nav a:hover { color: var(--text); text-decoration: none; background: var(--bg-elev-2); }
+.app-nav a.active { color: var(--text); background: var(--bg-elev-2); }
 .app-content { padding: 24px; max-width: 1400px; width: 100%; margin: 0 auto; }
 
 .card {
@@ -157,6 +168,7 @@ nav.crumbs a { color: var(--text-dim); }
     padding: 12px 16px;
   }
   .app-header h1 { font-size: 16px; }
+  .app-nav { justify-content: flex-start; gap: 2px; }
   .app-header .row { width: 100%; }
   .app-header .row .muted {
     flex: 1;
