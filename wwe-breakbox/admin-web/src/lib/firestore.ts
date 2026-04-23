@@ -119,7 +119,11 @@ export function subscribeToEventPurchases(eventId: string, cb: (purchases: Purch
     where('eventId', '==', eventId),
     orderBy('purchasedAt', 'desc')
   );
-  return onSnapshot(q, (snap) => cb(snap.docs.map(docToPurchase)));
+  return onSnapshot(
+    q,
+    (snap) => cb(snap.docs.map(docToPurchase)),
+    (err) => console.error('[subscribeToEventPurchases] failed:', err)
+  );
 }
 
 export function subscribeToUserPurchases(uid: string, cb: (purchases: Purchase[]) => void) {
