@@ -6,6 +6,9 @@ import {
   orderBy,
   onSnapshot,
   getDoc,
+  getDocs,
+  limit,
+  startAfter,
   Timestamp,
   type DocumentData,
   type QueryDocumentSnapshot,
@@ -136,4 +139,41 @@ export async function fetchUser(uid: string): Promise<UserProfile | null> {
 export function subscribeToUser(uid: string, cb: (user: UserProfile | null) => void) {
   const ref = doc(firebaseDb, 'users', uid);
   return onSnapshot(ref, (snap) => cb(docToUser(snap)));
+}
+
+export interface UsersPage {
+  users: UserProfile[];
+  lastDoc: QueryDocumentSnapshot<DocumentData> | null;
+  hasMore: boolean;
+}
+
+/**
+ * Paginated fetch of the users collection, ordered by createdAt desc.
+ * Pass `after` = the last QueryDocumentSnapshot of the previous page to get the next page.
+ * Fetches `pageSize + 1` docs to detect whether more pages exist.
+ */
+export async function fetchUsersPage(
+  pageSize: number,
+  after: QueryDocumentSnapshot<DocumentData> | null
+): Promise<UsersPage> {
+  const parts: any[] = [
+    collection(firebaseDb, 'users'),
+    orderBy('createdAt', 'desc'),
+  ];
+  if (after) parts.push(startAfter(after));
+  parts.push(limit(pageSize + 1));
+  // @ts-expect-error — query signature accepts a variadic list of constraints
+  const q = query(...parts);
+  const snap = await getDocs(q);
+  const docs = snap.docs;
+  const hasMore = docs.length > pageSize;
+  const pageDocs = docs.slice(0, pageSize);
+  const users = pageDocs
+    .map((d) => docToUser(d))
+    .filter((u): u is UserProfile => u !== null);
+  return {
+    users,
+    lastDoc: pageDocs.length > 0 ? pageDocs[pageDocs.length - 1] : null,
+    hasMore,
+  };
 }
