@@ -143,6 +143,21 @@ nav.crumbs a { color: var(--text-dim); }
 
 .scroll-x { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 
+/* Card pills for the per-buyer purchases list */
+.card-pills { display: flex; flex-wrap: wrap; gap: 6px; max-width: 520px; }
+.card-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px 3px 4px;
+  background: var(--bg-elev-2);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 12px;
+  line-height: 1.2;
+}
+.card-pill-name { color: var(--text); }
+
 /* Editable slot table — compound brand cell */
 .brand-field { display: flex; align-items: center; gap: 8px; }
 .brand-field select { flex: 1; min-width: 0; }

@@ -178,6 +178,13 @@ export function EventDetailPage() {
   );
 }
 
+interface BuyerGroup {
+  userId: string;
+  cards: Purchase[];
+  totalSpent: number;
+  lastPurchasedAt: Date;
+}
+
 function PurchasesPanel({ purchases }: { purchases: Purchase[] }) {
   const uids = useMemo(() => Array.from(new Set(purchases.map((p) => p.userId))), [purchases]);
   const [users, setUsers] = useState<Record<string, UserProfile | null>>({});
@@ -193,9 +200,33 @@ function PurchasesPanel({ purchases }: { purchases: Purchase[] }) {
     return () => { cancelled = true; };
   }, [uids.join('|')]);
 
+  const buyers = useMemo<BuyerGroup[]>(() => {
+    const byUser = new Map<string, BuyerGroup>();
+    for (const p of purchases) {
+      const existing = byUser.get(p.userId);
+      if (existing) {
+        existing.cards.push(p);
+        existing.totalSpent += p.price;
+        if (p.purchasedAt > existing.lastPurchasedAt) {
+          existing.lastPurchasedAt = p.purchasedAt;
+        }
+      } else {
+        byUser.set(p.userId, {
+          userId: p.userId,
+          cards: [p],
+          totalSpent: p.price,
+          lastPurchasedAt: p.purchasedAt,
+        });
+      }
+    }
+    return Array.from(byUser.values()).sort(
+      (a, b) => b.lastPurchasedAt.getTime() - a.lastPurchasedAt.getTime()
+    );
+  }, [purchases]);
+
   return (
     <div className="card">
-      <h2>Purchases ({purchases.length})</h2>
+      <h2>Purchases ({purchases.length} cards · {buyers.length} {buyers.length === 1 ? 'buyer' : 'buyers'})</h2>
       {purchases.length === 0 ? (
         <div className="muted">No purchases yet.</div>
       ) : (
@@ -203,30 +234,44 @@ function PurchasesPanel({ purchases }: { purchases: Purchase[] }) {
           <table>
             <thead>
               <tr>
-                <th>Username</th>
-                <th>Wrestler</th>
-                <th>Price</th>
-                <th>Purchased</th>
+                <th>Buyer</th>
+                <th>Cards purchased</th>
+                <th>Count</th>
+                <th>Total spent</th>
+                <th>Last purchase</th>
                 <th></th>
               </tr>
             </thead>
             <tbody>
-              {purchases.map((p) => {
-                const user = users[p.userId];
+              {buyers.map((b) => {
+                const user = users[b.userId];
+                const cardsSorted = [...b.cards].sort(
+                  (a, c) => c.purchasedAt.getTime() - a.purchasedAt.getTime()
+                );
                 return (
-                  <tr key={p.id}>
+                  <tr key={b.userId}>
                     <td>
                       {user ? (
-                        <Link to={`/users/${p.userId}`}>{user.username || user.email || p.userId}</Link>
+                        <Link to={`/users/${b.userId}`}>{user.username || user.email || b.userId}</Link>
                       ) : (
-                        <Link to={`/users/${p.userId}`}>{p.userId.slice(0, 8)}…</Link>
+                        <Link to={`/users/${b.userId}`}>{b.userId.slice(0, 8)}…</Link>
                       )}
                       {user?.legacyUser && <span className="badge sold" style={{ marginLeft: 6 }}>LEGACY</span>}
                     </td>
-                    <td>{p.wrestlerName}</td>
-                    <td>{formatMoney(p.price)}</td>
-                    <td>{formatDateTime(p.purchasedAt)}</td>
-                    <td><Link to={`/users/${p.userId}`} className="muted">Open user →</Link></td>
+                    <td>
+                      <div className="card-pills">
+                        {cardsSorted.map((p) => (
+                          <span key={p.id} className="card-pill" title={`${formatMoney(p.price)} · ${formatDateTime(p.purchasedAt)}`}>
+                            <span className={`brand ${p.brand}`}>{p.brand}</span>
+                            <span className="card-pill-name">{p.wrestlerName}</span>
+                          </span>
+                        ))}
+                      </div>
+                    </td>
+                    <td>{b.cards.length}</td>
+                    <td>{formatMoney(b.totalSpent)}</td>
+                    <td>{formatDateTime(b.lastPurchasedAt)}</td>
+                    <td><Link to={`/users/${b.userId}`} className="muted">Open user →</Link></td>
                   </tr>
                 );
               })}
