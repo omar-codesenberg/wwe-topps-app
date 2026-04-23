@@ -68,7 +68,7 @@ exports.lockSlot = functions
                 return { success: false, reason: 'SLOT_LOCKED' };
             if (slot.status === 'sold')
                 return { success: false, reason: 'SLOT_SOLD' };
-            const lockedUntil = new Date(Date.now() + 30000);
+            const lockedUntil = new Date(Date.now() + 10000);
             transaction.update(slotRef, {
                 status: 'locked',
                 lockedBy: uid,
