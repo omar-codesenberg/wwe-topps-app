@@ -11,8 +11,7 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { EventsStackParamList } from '../../navigation/EventsStack';
 import { SlotCard } from '../../components/slots/SlotCard';
 import { useSlots } from '../../hooks/useSlots';
-import { doc, updateDoc, serverTimestamp, Timestamp } from 'firebase/firestore';
-import { firebaseDb } from '../../config/firebase';
+import { lockSlot } from '../../services/functions.service';
 import { useAuthStore } from '../../store/authStore';
 import { useToastStore } from '../../store/toastStore';
 import { BRAND_CONFIG } from '../../constants/brands';
@@ -40,18 +39,22 @@ export function SlotsRosterScreen({ route, navigation }: Props) {
     }
     setLockingSlotId(slot.id);
     try {
-      const lockedUntilDate = new Date(Date.now() + 120000); // 2 minutes
-      const slotRef = doc(firebaseDb, 'events', eventId, 'slots', slot.id);
-      await updateDoc(slotRef, {
-        status: 'locked',
-        lockedBy: user.uid,
-        lockedAt: serverTimestamp(),
-        lockedUntil: Timestamp.fromDate(lockedUntilDate),
-      });
+      const result = await lockSlot({ eventId, slotId: slot.id });
+      const data = result.data as { success: boolean; lockedUntil?: string; reason?: string };
+      if (!data.success) {
+        const message =
+          data.reason === 'SLOT_LOCKED' ? 'This slot is being reserved by another user.' :
+          data.reason === 'SLOT_SOLD' ? 'This slot has been claimed.' :
+          data.reason === 'SLOT_CLOSED' ? 'This slot is closed.' :
+          data.reason === 'EVENT_NOT_LIVE' ? 'This event is not live.' :
+          'Could not reserve slot. Try again.';
+        show(message, 'error');
+        return;
+      }
       navigation.navigate('Checkout', {
         eventId,
         slotId: slot.id,
-        lockedUntil: lockedUntilDate.toISOString(),
+        lockedUntil: data.lockedUntil!,
         slotData: { ...slot, status: 'locked', lockedBy: user.uid },
       });
     } catch {

@@ -19,8 +19,7 @@ import { useAuthStore } from '../../store/authStore';
 import { useCheckoutStore } from '../../store/checkoutStore';
 import { useToastStore } from '../../store/toastStore';
 import { useWalletStore } from '../../store/walletStore';
-import { doc, setDoc, updateDoc, serverTimestamp, increment } from 'firebase/firestore';
-import { firebaseDb } from '../../config/firebase';
+import { purchaseSlot, releaseSlotOnCancel } from '../../services/functions.service';
 import { BRAND_CONFIG } from '../../constants/brands';
 import { theme } from '../../constants/theme';
 
@@ -46,13 +45,7 @@ export function CheckoutScreen({ route, navigation }: Props) {
 
   const releaseSlot = async () => {
     try {
-      const slotRef = doc(firebaseDb, 'events', eventId, 'slots', slotId);
-      await updateDoc(slotRef, {
-        status: 'available',
-        lockedBy: null,
-        lockedAt: null,
-        lockedUntil: null,
-      });
+      await releaseSlotOnCancel({ eventId, slotId });
     } catch {
       // Lock will expire automatically
     }
@@ -84,44 +77,21 @@ export function CheckoutScreen({ route, navigation }: Props) {
     // }
     setIsPurchasing(true);
     try {
-      // TODO: Replace with real purchaseSlot call + PayPal SDK
-      const purchaseId = `purchase-${Date.now()}`;
-      const slotRef = doc(firebaseDb, 'events', eventId, 'slots', slotId);
-      const purchaseRef = doc(firebaseDb, 'purchases', purchaseId);
-      const eventRef = doc(firebaseDb, 'events', eventId);
-      const userRef = doc(firebaseDb, 'users', user.uid);
-
-      await updateDoc(slotRef, {
-        status: 'sold',
-        purchasedBy: user.uid,
-        purchasedAt: serverTimestamp(),
-        lockedBy: null,
-        lockedAt: null,
-        lockedUntil: null,
-      });
-      await setDoc(purchaseRef, {
-        id: purchaseId,
-        userId: user.uid,
-        eventId,
-        slotId,
-        wrestlerName: slotData.wrestlerName,
-        eventTitle: 'WWE Topps Chrome 2026 Mega Break 3x',
-        brand: slotData.brand,
-        tier: slotData.tier,
-        price: slotData.price,
-        purchasedAt: serverTimestamp(),
-        transactionId: `txn-${Date.now()}`,
-        status: 'completed',
-      });
-      await updateDoc(eventRef, { soldSlots: increment(1) });
-      await updateDoc(userRef, {
-        purchaseCount: increment(1),
-        balance: increment(-slotData.price),
-      });
+      const result = await purchaseSlot({ eventId, slotId });
+      const data = result.data as { success: boolean; purchaseId?: string; reason?: string };
+      if (!data.success) {
+        const message =
+          data.reason === 'LOCK_EXPIRED' ? 'Your reservation expired. Please try again.' :
+          data.reason === 'SLOT_NOT_LOCKED' ? 'This slot is no longer reserved.' :
+          data.reason === 'NOT_YOUR_LOCK' ? 'This slot is reserved by another user.' :
+          'Purchase failed. Please try again.';
+        show(message, 'error');
+        return;
+      }
 
       clear();
       navigation.navigate('PurchaseSuccess', {
-        purchaseId,
+        purchaseId: data.purchaseId!,
         slotData,
         eventTitle: 'WWE Topps Chrome 2026 Mega Break 3x',
       });
