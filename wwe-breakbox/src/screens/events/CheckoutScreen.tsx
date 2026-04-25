@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback } from 'react';
+import React, { useEffect, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -34,7 +34,7 @@ export function CheckoutScreen({ route, navigation }: Props) {
   const [isPurchasing, setIsPurchasing] = React.useState(false);
   const [isExpired, setIsExpired] = React.useState(false);
 
-  const lockedUntilDate = new Date(lockedUntil);
+  const lockedUntilDate = useMemo(() => new Date(lockedUntil), [lockedUntil]);
   const { secondsRemaining } = useCountdown(lockedUntilDate, () => {
     setIsExpired(true);
     releaseSlot();
