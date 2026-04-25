@@ -91,6 +91,7 @@ export function CheckoutScreen({ route, navigation }: Props) {
         purchaseId: data.purchaseId!,
         slotData,
         eventTitle: 'WWE Topps Chrome 2026 Mega Break 3x',
+        eventId,
       });
     } catch (e: any) {
       console.error('Purchase error:', e);

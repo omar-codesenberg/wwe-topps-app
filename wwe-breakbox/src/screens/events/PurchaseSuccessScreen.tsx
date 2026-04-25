@@ -44,7 +44,7 @@ function Particle({ delay, x }: { delay: number; x: number }) {
 }
 
 export function PurchaseSuccessScreen({ route, navigation }: Props) {
-  const { slotData, eventTitle } = route.params;
+  const { slotData, eventTitle, eventId } = route.params;
   const insets = useSafeAreaInsets();
   const brandConfig = BRAND_CONFIG[slotData.brand];
 
@@ -56,7 +56,7 @@ export function PurchaseSuccessScreen({ route, navigation }: Props) {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      navigation.popToTop();
+      navigation.navigate('EventDetail', { eventId });
     }, 3500);
     return () => clearTimeout(timer);
   }, []);
@@ -101,7 +101,7 @@ export function PurchaseSuccessScreen({ route, navigation }: Props) {
         />
         <WWEButton
           label="Back to Roster"
-          onPress={() => navigation.popToTop()}
+          onPress={() => navigation.navigate('EventDetail', { eventId })}
           variant="outline"
           style={styles.secondBtn}
         />
