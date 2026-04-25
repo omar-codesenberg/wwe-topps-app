@@ -93,7 +93,7 @@ export function EventCreatePage() {
           <div className="row" style={{ marginBottom: 8 }}>
             <h2 style={{ margin: 0 }}>Slots ({drafts.length})</h2>
             <div className="spacer" />
-            <span className="muted">Edit names, prices, brands, or remove rows before submitting.</span>
+            <span className="muted">Edit names, prices, or remove rows before submitting.</span>
           </div>
           <EditableSlotTable drafts={drafts} onChange={setDrafts} />
         </div>

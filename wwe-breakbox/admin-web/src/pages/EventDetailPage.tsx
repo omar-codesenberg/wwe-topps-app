@@ -6,9 +6,9 @@ import {
   subscribeToEventPurchases,
   fetchUser,
 } from '../lib/firestore';
-import { setSlotClosed, setSlotBrand, startEvent, closeEvent } from '../lib/adminApi';
+import { setSlotClosed, startEvent, closeEvent } from '../lib/adminApi';
 import { formatDateTime, formatMoney } from '../lib/format';
-import { BRANDS, type Brand, type BreakEvent, type Purchase, type Slot, type UserProfile } from '../lib/types';
+import type { BreakEvent, Purchase, Slot, UserProfile } from '../lib/types';
 
 export function EventDetailPage() {
   const { eventId } = useParams<{ eventId: string }>();
@@ -78,16 +78,6 @@ export function EventDetailPage() {
     }
   }
 
-  async function handleBrand(slot: Slot, brand: Brand) {
-    if (!eventId) return;
-    setError(null);
-    try {
-      await setSlotBrand({ eventId, slotId: slot.id, brand });
-    } catch (err: any) {
-      setError(err?.message ?? 'Failed to update brand.');
-    }
-  }
-
   return (
     <div>
       <nav className="crumbs"><Link to="/">Events</Link> / {event.title}</nav>
@@ -124,7 +114,6 @@ export function EventDetailPage() {
               <tr>
                 <th>Wrestler</th>
                 <th>Members</th>
-                <th>Brand</th>
                 <th>Price</th>
                 <th>Status</th>
                 <th>Action</th>
@@ -135,14 +124,6 @@ export function EventDetailPage() {
                 <tr key={slot.id}>
                   <td>{slot.wrestlerName}</td>
                   <td className="muted" style={{ maxWidth: 240 }}>{slot.members.join(', ') || '—'}</td>
-                  <td>
-                    <select
-                      value={slot.brand}
-                      onChange={(e) => handleBrand(slot, e.target.value as Brand)}
-                    >
-                      {BRANDS.map((b) => <option key={b} value={b}>{b}</option>)}
-                    </select>
-                  </td>
                   <td>{formatMoney(slot.price)}</td>
                   <td><span className={`badge ${slot.status}`}>{slot.status}</span></td>
                   <td>
