@@ -21,7 +21,7 @@ export async function signUp(
 ): Promise<UserCredential> {
   const credential = await createUserWithEmailAndPassword(firebaseAuth, email, password);
   await updateProfile(credential.user, { displayName });
-  await createUserDocument(credential.user);
+  await createUserDocument(credential.user, { displayName });
   return credential;
 }
 
@@ -29,16 +29,20 @@ export async function signOut(): Promise<void> {
   return fbSignOut(firebaseAuth);
 }
 
-export async function createUserDocument(user: User): Promise<void> {
+export async function createUserDocument(
+  user: User,
+  overrides?: { displayName?: string }
+): Promise<void> {
   const userRef = doc(firebaseDb, 'users', user.uid);
   const snap = await getDoc(userRef);
   if (!snap.exists()) {
+    const displayName = overrides?.displayName ?? user.displayName ?? '';
     await setDoc(userRef, {
       email: user.email,
-      displayName: user.displayName || '',
+      displayName,
       firstName: '',
       lastName: '',
-      username: '',
+      username: displayName,
       shippingAddress: null,
       wantBaseCards: true,
       legacyUser: false,
