@@ -1,4 +1,4 @@
-import { BRANDS, type Brand, type SlotDraft } from '../lib/types';
+import type { SlotDraft } from '../lib/types';
 
 interface Props {
   drafts: SlotDraft[];
@@ -26,13 +26,12 @@ export function EditableSlotTable({ drafts, onChange }: Props) {
             <th>Wrestler / Group</th>
             <th>Members</th>
             <th style={{ width: 110 }}>Price</th>
-            <th style={{ width: 200 }}>Brand</th>
             <th style={{ width: 60 }}></th>
           </tr>
         </thead>
         <tbody>
           {drafts.map((d, i) => (
-            <tr key={i} data-brand={d.brand}>
+            <tr key={i}>
               <td data-label="#" className="muted">{i + 1}</td>
               <td data-label="Wrestler / Group">
                 <input
@@ -64,19 +63,6 @@ export function EditableSlotTable({ drafts, onChange }: Props) {
                   onChange={(e) => update(i, { price: Number(e.target.value) })}
                   style={{ width: '100%' }}
                 />
-              </td>
-              <td data-label="Brand">
-                <div className="brand-field">
-                  <select
-                    value={d.brand}
-                    onChange={(e) => update(i, { brand: e.target.value as Brand })}
-                  >
-                    {BRANDS.map((b) => (
-                      <option key={b} value={b}>{b}</option>
-                    ))}
-                  </select>
-                  <span className={`brand ${d.brand}`}>{d.brand}</span>
-                </div>
               </td>
               <td data-label="action">
                 <button
