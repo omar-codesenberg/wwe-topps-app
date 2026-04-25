@@ -2,7 +2,6 @@ import React, { useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Animated } from 'react-native';
 import { Slot } from '../../types/slot.types';
 import { GlassCard } from '../ui/GlassCard';
-import { TierBadge } from '../ui/TierBadge';
 import { StatusBadge } from '../ui/StatusBadge';
 import { WWEButton } from '../ui/WWEButton';
 import { BRAND_CONFIG } from '../../constants/brands';
@@ -66,7 +65,6 @@ export function SlotCard({ slot, currentUserId, onBuySpot, isLocking }: SlotCard
               </Text>
             )}
             <View style={styles.badges}>
-              <TierBadge tier={slot.tier} />
               <StatusBadge status={slot.status} isMyLock={isMyLock} />
             </View>
           </View>
