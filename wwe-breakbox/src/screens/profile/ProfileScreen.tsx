@@ -10,6 +10,7 @@ import {
   Alert,
 } from 'react-native';
 import { doc, onSnapshot, updateDoc } from 'firebase/firestore';
+import { useNavigation } from '@react-navigation/native';
 import { firebaseDb } from '../../config/firebase';
 import { useAuthStore } from '../../store/authStore';
 import { WWEButton } from '../../components/ui/WWEButton';
@@ -41,6 +42,7 @@ const EMPTY_FORM: FormState = {
 
 export function ProfileScreen() {
   const { user } = useAuthStore();
+  const navigation = useNavigation<any>();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [email, setEmail] = useState<string>('');
@@ -109,7 +111,7 @@ export function ProfileScreen() {
         wantBaseCards: form.wantBaseCards,
         shippingAddress: shipping,
       });
-      Alert.alert('Saved', 'Your profile has been updated.');
+      navigation.navigate('Events');
     } catch (e: any) {
       console.error('Profile save error:', e);
       Alert.alert('Error', e?.message || 'Failed to save profile.');
