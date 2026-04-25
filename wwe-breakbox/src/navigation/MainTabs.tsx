@@ -1,6 +1,7 @@
 import React from 'react';
 import { TouchableOpacity, Text, Alert } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { EventsStack } from './EventsStack';
 import { MyPurchasesScreen } from '../screens/purchases/MyPurchasesScreen';
 import { ProfileScreen } from '../screens/profile/ProfileScreen';
@@ -18,6 +19,7 @@ const Tab = createBottomTabNavigator<MainTabParamList>();
 
 export function MainTabs() {
   const { user } = useAuthStore();
+  const insets = useSafeAreaInsets();
 
   const handleSignOut = () => {
     Alert.alert(
@@ -48,8 +50,8 @@ export function MainTabs() {
           backgroundColor: '#141414',
           borderTopColor: 'rgba(255,255,255,0.08)',
           borderTopWidth: 1,
-          height: 60,
-          paddingBottom: 8,
+          height: 60 + insets.bottom,
+          paddingBottom: 8 + insets.bottom,
         },
         tabBarActiveTintColor: theme.colors.red,
         tabBarInactiveTintColor: theme.colors.textDimmed,
