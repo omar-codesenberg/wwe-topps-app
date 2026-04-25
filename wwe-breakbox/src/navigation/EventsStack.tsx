@@ -13,7 +13,7 @@ export type EventsStackParamList = {
   EventDetail: { eventId: string };
   SlotsRoster: { eventId: string };
   Checkout: { eventId: string; slotId: string; lockedUntil: string; slotData: Slot };
-  PurchaseSuccess: { purchaseId: string; slotData: Slot; eventTitle: string };
+  PurchaseSuccess: { purchaseId: string; slotData: Slot; eventTitle: string; eventId: string };
 };
 
 const Stack = createNativeStackNavigator<EventsStackParamList>();
