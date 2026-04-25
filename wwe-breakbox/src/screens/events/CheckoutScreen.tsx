@@ -20,7 +20,6 @@ import { useCheckoutStore } from '../../store/checkoutStore';
 import { useToastStore } from '../../store/toastStore';
 import { useWalletStore } from '../../store/walletStore';
 import { purchaseSlot, releaseSlotOnCancel } from '../../services/functions.service';
-import { BRAND_CONFIG } from '../../constants/brands';
 import { theme } from '../../constants/theme';
 
 type Props = NativeStackScreenProps<EventsStackParamList, 'Checkout'>;
@@ -35,7 +34,6 @@ export function CheckoutScreen({ route, navigation }: Props) {
   const canAfford = balance >= slotData.price;
   const [isPurchasing, setIsPurchasing] = React.useState(false);
   const [isExpired, setIsExpired] = React.useState(false);
-  const brandConfig = BRAND_CONFIG[slotData.brand];
 
   const lockedUntilDate = new Date(lockedUntil);
   const { secondsRemaining } = useCountdown(lockedUntilDate, () => {
@@ -114,13 +112,6 @@ export function CheckoutScreen({ route, navigation }: Props) {
       <LoadingOverlay visible={isPurchasing} />
 
       <ScrollView contentContainerStyle={styles.content} bounces={false}>
-        {/* Brand header */}
-        <View style={[styles.brandHeader, { backgroundColor: brandConfig.bgColor }]}>
-          <Text style={[styles.brandLabel, { color: brandConfig.color }]}>
-            {brandConfig.label}
-          </Text>
-        </View>
-
         {/* Slot info */}
         <View style={styles.slotInfo}>
           <Text style={styles.wrestlerName}>{slotData.wrestlerName}</Text>
@@ -195,14 +186,7 @@ export function CheckoutScreen({ route, navigation }: Props) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: theme.colors.background },
-  content: { flexGrow: 1, paddingHorizontal: theme.spacing.lg },
-  brandHeader: {
-    marginHorizontal: -theme.spacing.lg,
-    paddingVertical: 10,
-    paddingHorizontal: theme.spacing.lg,
-    marginBottom: theme.spacing.lg,
-  },
-  brandLabel: { fontSize: theme.sizes.xs, fontWeight: '900', letterSpacing: 4 },
+  content: { flexGrow: 1, paddingHorizontal: theme.spacing.lg, paddingTop: theme.spacing.lg },
   slotInfo: { alignItems: 'center', marginBottom: theme.spacing.xl },
   wrestlerName: {
     color: theme.colors.textPrimary,
