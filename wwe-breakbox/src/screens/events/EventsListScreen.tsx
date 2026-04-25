@@ -4,7 +4,6 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  FlatList,
   TouchableOpacity,
   ActivityIndicator,
   Animated,
@@ -13,10 +12,8 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { EventsStackParamList } from '../../navigation/EventsStack';
 import { EventCountdown } from '../../components/events/EventCountdown';
-import { FeaturedSlotCard } from '../../components/slots/FeaturedSlotCard';
 import { WWEButton } from '../../components/ui/WWEButton';
 import { useEvents } from '../../hooks/useEvents';
-import { useSlots } from '../../hooks/useSlots';
 import { theme } from '../../constants/theme';
 
 type Props = NativeStackScreenProps<EventsStackParamList, 'EventsList'>;
@@ -26,16 +23,11 @@ export function EventsListScreen({ navigation }: Props) {
   const { events, liveEvents, upcomingEvents, loading: eventLoading } = useEvents();
   const event = liveEvents[0] ?? events[0] ?? null;
   const eventId = event?.id ?? '';
-  const { slots } = useSlots(eventId);
 
   // Exclude the currently-featured event (if it happens to be upcoming) from the
   // separate "Upcoming" section so we don't render it twice.
   const upcomingToList = upcomingEvents.filter((e) => e.id !== event?.id);
   const otherLiveEvents = liveEvents.filter((e) => e.id !== event?.id);
-
-  const featuredSlots = event?.featuredSlotIds
-    ? slots.filter((s) => event.featuredSlotIds.includes(s.id))
-    : [];
 
   const canEnter = event?.status === 'live';
 
@@ -119,27 +111,6 @@ export function EventsListScreen({ navigation }: Props) {
           style={styles.ctaButton}
         />
       </Animated.View>
-
-      {/* Top Contenders */}
-      {featuredSlots.length > 0 && (
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>TOP CONTENDERS</Text>
-          <Text style={styles.sectionSubtitle}>HIGH VALUE SLOTS</Text>
-          <FlatList
-            data={featuredSlots}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            keyExtractor={(item) => item.id}
-            renderItem={({ item }) => (
-              <FeaturedSlotCard
-                slot={item}
-                onPress={() => navigation.navigate('SlotsRoster', { eventId: eventId })}
-              />
-            )}
-            contentContainerStyle={styles.featuredList}
-          />
-        </View>
-      )}
 
       {/* Other live events — admin may have started multiple */}
       {otherLiveEvents.length > 0 && (
@@ -242,7 +213,6 @@ const styles = StyleSheet.create({
   section: { paddingHorizontal: theme.spacing.lg },
   sectionTitle: { color: theme.colors.textPrimary, fontSize: theme.sizes.sm, fontWeight: '900', letterSpacing: 3, fontFamily: 'Oswald_700Bold' },
   sectionSubtitle: { color: theme.colors.gold, fontSize: theme.sizes.xs, letterSpacing: 3, marginBottom: theme.spacing.sm, fontFamily: 'Oswald_700Bold' },
-  featuredList: { paddingRight: theme.spacing.lg },
   noEvent: { alignItems: 'center', marginTop: 60 },
   noEventText: { color: theme.colors.textSecondary, fontSize: theme.sizes.md },
   noEventSub: { color: theme.colors.textDimmed, fontSize: theme.sizes.sm, marginTop: 4 },
