@@ -35,8 +35,8 @@ export async function createUserDocument(
 ): Promise<void> {
   const userRef = doc(firebaseDb, 'users', user.uid);
   const snap = await getDoc(userRef);
+  const displayName = overrides?.displayName ?? user.displayName ?? '';
   if (!snap.exists()) {
-    const displayName = overrides?.displayName ?? user.displayName ?? '';
     await setDoc(userRef, {
       email: user.email,
       displayName,
@@ -51,8 +51,20 @@ export async function createUserDocument(
       purchaseCount: 0,
       balance: 500,
     });
-  } else if (snap.data()?.balance === undefined) {
-    await setDoc(userRef, { balance: 500 }, { merge: true });
+    return;
+  }
+
+  // Doc already exists (e.g., onAuthStateChanged ran before signUp finished
+  // updateProfile). Backfill any fields the listener could not have known.
+  const data = snap.data() ?? {};
+  const updates: Record<string, unknown> = {};
+  if (overrides?.displayName) {
+    if (!data.displayName) updates.displayName = displayName;
+    if (!data.username) updates.username = displayName;
+  }
+  if (data.balance === undefined) updates.balance = 500;
+  if (Object.keys(updates).length > 0) {
+    await setDoc(userRef, updates, { merge: true });
   }
 }
 
