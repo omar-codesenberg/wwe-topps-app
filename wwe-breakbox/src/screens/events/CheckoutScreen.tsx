@@ -11,7 +11,6 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { EventsStackParamList } from '../../navigation/EventsStack';
 import { LockCountdown } from '../../components/slots/LockCountdown';
-import { TierBadge } from '../../components/ui/TierBadge';
 import { WWEButton } from '../../components/ui/WWEButton';
 import { LoadingOverlay } from '../../components/ui/LoadingOverlay';
 import { useCountdown } from '../../hooks/useCountdown';
@@ -118,7 +117,6 @@ export function CheckoutScreen({ route, navigation }: Props) {
           {slotData.members.length > 0 && (
             <Text style={styles.members}>{slotData.members.join(' • ')}</Text>
           )}
-          <TierBadge tier={slotData.tier} size="md" />
           <Text style={styles.price}>${slotData.price.toLocaleString()}.00</Text>
         </View>
 
