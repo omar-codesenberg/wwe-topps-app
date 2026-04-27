@@ -24,6 +24,9 @@ function groupByEvent(purchases: Purchase[]): { title: string; data: Purchase[] 
     }
     map.get(p.eventId)!.data.push(p);
   }
+  for (const section of map.values()) {
+    section.data.sort((a, b) => a.wrestlerName.localeCompare(b.wrestlerName));
+  }
   return Array.from(map.values());
 }
 
