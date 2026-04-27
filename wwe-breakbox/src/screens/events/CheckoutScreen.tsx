@@ -17,7 +17,6 @@ import { useCountdown } from '../../hooks/useCountdown';
 import { useAuthStore } from '../../store/authStore';
 import { useCheckoutStore } from '../../store/checkoutStore';
 import { useToastStore } from '../../store/toastStore';
-import { useWalletStore } from '../../store/walletStore';
 import { purchaseSlot, releaseSlotOnCancel } from '../../services/functions.service';
 import { theme } from '../../constants/theme';
 
@@ -29,8 +28,6 @@ export function CheckoutScreen({ route, navigation }: Props) {
   const { show } = useToastStore();
   const { clear } = useCheckoutStore();
   const { user } = useAuthStore();
-  const { balance } = useWalletStore();
-  const canAfford = balance >= slotData.price;
   const [isPurchasing, setIsPurchasing] = React.useState(false);
   const [isExpired, setIsExpired] = React.useState(false);
 
@@ -67,11 +64,6 @@ export function CheckoutScreen({ route, navigation }: Props) {
       return;
     }
     if (!user) return;
-    // TODO: Re-enable funds check for production
-    // if (!canAfford) {
-    //   show('Insufficient funds.', 'error');
-    //   return;
-    // }
     setIsPurchasing(true);
     try {
       const result = await purchaseSlot({ eventId, slotId });
@@ -119,17 +111,6 @@ export function CheckoutScreen({ route, navigation }: Props) {
             <Text style={styles.members}>{slotData.members.join(' • ')}</Text>
           )}
           <Text style={styles.price}>${slotData.price.toLocaleString()}.00</Text>
-        </View>
-
-        {/* Balance */}
-        <View style={styles.balanceRow}>
-          <Text style={styles.balanceLabel}>YOUR BALANCE</Text>
-          <Text style={[styles.balanceAmount, !canAfford && styles.balanceInsufficient]}>
-            ${balance.toLocaleString()}.00
-          </Text>
-          {!canAfford && (
-            <Text style={styles.insufficientText}>INSUFFICIENT FUNDS</Text>
-          )}
         </View>
 
         {/* Countdown */}
@@ -237,34 +218,5 @@ const styles = StyleSheet.create({
   paypalText: { color: '#FFFFFF', fontSize: 22, fontWeight: '400', fontStyle: 'italic' },
   paypalBold: { fontWeight: '700', color: '#009CDE' },
   paypalSub: { color: 'rgba(255,255,255,0.8)', fontSize: theme.sizes.xs, letterSpacing: 2, marginTop: 4 },
-  balanceRow: {
-    alignItems: 'center',
-    marginBottom: theme.spacing.lg,
-    paddingVertical: theme.spacing.sm,
-    borderTopWidth: 1,
-    borderBottomWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
-  },
-  balanceLabel: {
-    color: theme.colors.textSecondary,
-    fontSize: theme.sizes.xs,
-    letterSpacing: 3,
-    marginBottom: 4,
-  },
-  balanceAmount: {
-    color: theme.colors.success,
-    fontSize: theme.sizes.lg,
-    fontWeight: '900',
-    fontFamily: 'Oswald_700Bold',
-  },
-  balanceInsufficient: {
-    color: theme.colors.red,
-  },
-  insufficientText: {
-    color: theme.colors.red,
-    fontSize: theme.sizes.xs,
-    letterSpacing: 2,
-    marginTop: 4,
-  },
   cancelBtn: { marginTop: theme.spacing.sm },
 });
