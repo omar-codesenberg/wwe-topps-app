@@ -226,8 +226,8 @@ function PurchasesPanel({ purchases }: { purchases: Purchase[] }) {
             <tbody>
               {buyers.map((b) => {
                 const user = users[b.userId];
-                const cardsSorted = [...b.cards].sort(
-                  (a, c) => c.purchasedAt.getTime() - a.purchasedAt.getTime()
+                const cardsSorted = [...b.cards].sort((a, c) =>
+                  a.wrestlerName.localeCompare(c.wrestlerName)
                 );
                 return (
                   <tr key={b.userId}>

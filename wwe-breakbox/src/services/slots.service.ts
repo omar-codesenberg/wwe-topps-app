@@ -2,6 +2,8 @@ import {
   collection,
   doc,
   onSnapshot,
+  orderBy,
+  query,
   DocumentData,
   DocumentSnapshot,
   QueryDocumentSnapshot,
@@ -35,7 +37,8 @@ export function subscribeToSlots(
   callback: (slots: Slot[]) => void
 ): () => void {
   const slotsRef = collection(firebaseDb, 'events', eventId, 'slots');
-  return onSnapshot(slotsRef, (snapshot) => {
+  const slotsQuery = query(slotsRef, orderBy('wrestlerName', 'asc'));
+  return onSnapshot(slotsQuery, (snapshot) => {
     callback(snapshot.docs.map(docToSlot));
   });
 }

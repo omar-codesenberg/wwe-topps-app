@@ -118,7 +118,7 @@ export function subscribeToEvent(eventId: string, cb: (event: BreakEvent | null)
 }
 
 export function subscribeToSlots(eventId: string, cb: (slots: Slot[]) => void) {
-  const q = query(collection(firebaseDb, 'events', eventId, 'slots'), orderBy('price', 'desc'));
+  const q = query(collection(firebaseDb, 'events', eventId, 'slots'), orderBy('wrestlerName', 'asc'));
   return onSnapshot(q, (snap) => cb(snap.docs.map(docToSlot)));
 }
 
