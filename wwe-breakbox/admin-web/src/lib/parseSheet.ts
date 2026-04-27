@@ -23,7 +23,7 @@ export async function parseSheet(file: File, defaultBrand: Brand = 'RAW'): Promi
     const nameRaw = row[0];
     const priceRaw = row[1];
     if (typeof nameRaw !== 'string') continue;
-    const wrestlerName = nameRaw.trim();
+    const wrestlerName = nameRaw;
     if (!wrestlerName) continue;
     const price = typeof priceRaw === 'number' ? priceRaw : Number(priceRaw);
     if (!Number.isFinite(price) || price < 0) continue;
