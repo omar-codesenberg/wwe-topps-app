@@ -23,7 +23,7 @@ export function EventsListPage() {
       )}
 
       {events && events.length > 0 && (
-        <div className="card scroll-x" style={{ padding: 0 }}>
+        <div className="card scroll-x responsive-table" style={{ padding: 0 }}>
           <table>
             <thead>
               <tr>
@@ -37,10 +37,10 @@ export function EventsListPage() {
             <tbody>
               {events.map((ev) => (
                 <tr key={ev.id}>
-                  <td><Link to={`/events/${ev.id}`}>{ev.title}</Link></td>
-                  <td><span className={`badge ${ev.status}`}>{ev.status}</span></td>
-                  <td>{formatDateTime(ev.opensAt)}</td>
-                  <td>{ev.soldSlots} / {ev.totalSlots}</td>
+                  <td data-label="Title"><Link to={`/events/${ev.id}`}>{ev.title}</Link></td>
+                  <td data-label="Status"><span className={`badge ${ev.status}`}>{ev.status}</span></td>
+                  <td data-label="Opens">{formatDateTime(ev.opensAt)}</td>
+                  <td data-label="Sold / Total">{ev.soldSlots} / {ev.totalSlots}</td>
                   <td><Link to={`/events/${ev.id}`} className="muted">Open →</Link></td>
                 </tr>
               ))}

@@ -87,9 +87,8 @@ export function EventDetailPage() {
           <span className={`badge ${event.status}`}>{event.status}</span>
         </div>
         <div className="spacer" />
-        <div className="row" style={{ gap: 8, color: 'var(--text-dim)', fontSize: 13 }}>
+        <div className="row muted" style={{ gap: 12, fontSize: 13 }}>
           <span>Opens {formatDateTime(event.opensAt)}</span>
-          <span>·</span>
           <span>{event.soldSlots} / {event.totalSlots} sold</span>
         </div>
         {event.status === 'upcoming' && (
@@ -108,7 +107,7 @@ export function EventDetailPage() {
 
       <div className="card">
         <h2>Slots ({slots.length})</h2>
-        <div className="scroll-x" style={{ maxHeight: 600, overflowY: 'auto' }}>
+        <div className="scroll-x slots-table-desktop-scroll responsive-table">
           <table>
             <thead>
               <tr>
@@ -122,11 +121,11 @@ export function EventDetailPage() {
             <tbody>
               {slots.map((slot) => (
                 <tr key={slot.id}>
-                  <td>{slot.wrestlerName}</td>
-                  <td className="muted" style={{ maxWidth: 240 }}>{slot.members.join(', ') || '—'}</td>
-                  <td>{formatMoney(slot.price)}</td>
-                  <td><span className={`badge ${slot.status}`}>{slot.status}</span></td>
-                  <td>
+                  <td data-label="Wrestler">{slot.wrestlerName}</td>
+                  <td data-label="Members" className="muted" style={{ maxWidth: 240 }}>{slot.members.join(', ') || '—'}</td>
+                  <td data-label="Price">{formatMoney(slot.price)}</td>
+                  <td data-label="Status"><span className={`badge ${slot.status}`}>{slot.status}</span></td>
+                  <td data-label="Action" data-action="true">
                     {slot.status === 'sold' ? (
                       <span className="muted">—</span>
                     ) : slot.status === 'closed' ? (
@@ -211,7 +210,7 @@ function PurchasesPanel({ purchases }: { purchases: Purchase[] }) {
       {purchases.length === 0 ? (
         <div className="muted">No purchases yet.</div>
       ) : (
-        <div className="scroll-x">
+        <div className="scroll-x responsive-table">
           <table>
             <thead>
               <tr>
@@ -231,7 +230,7 @@ function PurchasesPanel({ purchases }: { purchases: Purchase[] }) {
                 );
                 return (
                   <tr key={b.userId}>
-                    <td>
+                    <td data-label="Buyer">
                       {user ? (
                         <Link to={`/users/${b.userId}`}>{user.username || user.email || b.userId}</Link>
                       ) : (
@@ -239,7 +238,7 @@ function PurchasesPanel({ purchases }: { purchases: Purchase[] }) {
                       )}
                       {user?.legacyUser && <span className="badge sold" style={{ marginLeft: 6 }}>LEGACY</span>}
                     </td>
-                    <td>
+                    <td data-label="Cards purchased">
                       <div className="card-pills">
                         {cardsSorted.map((p) => (
                           <span key={p.id} className="card-pill" title={`${formatMoney(p.price)} · ${formatDateTime(p.purchasedAt)}`}>
@@ -249,9 +248,9 @@ function PurchasesPanel({ purchases }: { purchases: Purchase[] }) {
                         ))}
                       </div>
                     </td>
-                    <td>{b.cards.length}</td>
-                    <td>{formatMoney(b.totalSpent)}</td>
-                    <td>{formatDateTime(b.lastPurchasedAt)}</td>
+                    <td data-label="Count">{b.cards.length}</td>
+                    <td data-label="Total spent">{formatMoney(b.totalSpent)}</td>
+                    <td data-label="Last purchase">{formatDateTime(b.lastPurchasedAt)}</td>
                     <td><Link to={`/users/${b.userId}`} className="muted">Open user →</Link></td>
                   </tr>
                 );
