@@ -175,6 +175,10 @@ nav.crumbs a { color: var(--text-dim); }
 
 .editable-slots-table .remove-btn { padding: 4px 10px; font-size: 16px; line-height: 1; }
 
+/* Desktop-only scroll for the Slots panel on the Event Detail page.
+   On mobile we let the page scroll naturally instead of nesting an inner scroll. */
+.slots-table-desktop-scroll { max-height: 600px; overflow-y: auto; }
+
 @media (max-width: 640px) {
   .app-header {
     flex-direction: column;
@@ -312,5 +316,49 @@ nav.crumbs a { color: var(--text-dim); }
   .editable-slots-table td[data-label="action"] .remove-btn::before {
     content: 'Remove slot';
     font-size: 14px;
+  }
+
+  /* Generalized responsive table → stacked cards on mobile.
+     Apply by adding `responsive-table` to the wrapper and `data-label` to each <td>. */
+  .responsive-table { padding: 0 !important; }
+  .responsive-table table,
+  .responsive-table tbody { display: block; width: 100%; }
+  .responsive-table thead { display: none; }
+  .responsive-table tr {
+    display: block;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 8px;
+  }
+  .responsive-table tr:hover td { background: transparent; }
+  .responsive-table td {
+    display: block;
+    padding: 4px 0;
+    border-bottom: 0;
+    white-space: normal;
+    max-width: none;
+  }
+  .responsive-table td::before {
+    content: attr(data-label);
+    display: block;
+    font-size: 11px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 2px;
+  }
+  .responsive-table td:not([data-label])::before,
+  .responsive-table td[data-label=""]::before { display: none; }
+  .responsive-table td[data-action="true"] { padding-top: 8px; }
+  .responsive-table td[data-action="true"] button { width: 100%; }
+  /* Let pill collections fill the card on mobile */
+  .responsive-table .card-pills { max-width: 100%; }
+
+  /* On mobile, kill the nested scroll inside the Slots panel */
+  .slots-table-desktop-scroll {
+    max-height: none;
+    overflow-y: visible;
   }
 }
