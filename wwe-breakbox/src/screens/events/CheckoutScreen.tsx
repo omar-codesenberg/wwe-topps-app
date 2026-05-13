@@ -17,7 +17,11 @@ import { useCountdown } from '../../hooks/useCountdown';
 import { useAuthStore } from '../../store/authStore';
 import { useCheckoutStore } from '../../store/checkoutStore';
 import { useToastStore } from '../../store/toastStore';
-import { purchaseSlot, releaseSlotOnCancel } from '../../services/functions.service';
+import { releaseSlotOnCancel } from '../../services/functions.service';
+import {
+  purchaseSlotViaPayPal,
+  cancelPurchaseFlow,
+} from '../../services/payments/paypal.service';
 import { theme } from '../../constants/theme';
 
 type Props = NativeStackScreenProps<EventsStackParamList, 'Checkout'>;
@@ -32,6 +36,8 @@ export function CheckoutScreen({ route, navigation }: Props) {
   const [isExpired, setIsExpired] = React.useState(false);
 
   const lockedUntilDate = useMemo(() => new Date(lockedUntil), [lockedUntil]);
+  // Note: server-side, the slot lock is extended to 5 minutes once PayPal order is created.
+  // This client-side countdown is now a UX hint, not a hard expiry.
   const { secondsRemaining } = useCountdown(lockedUntilDate, () => {
     setIsExpired(true);
     releaseSlot();
@@ -66,25 +72,42 @@ export function CheckoutScreen({ route, navigation }: Props) {
     if (!user) return;
     setIsPurchasing(true);
     try {
-      const result = await purchaseSlot({ eventId, slotId });
-      const data = result.data as { success: boolean; purchaseId?: string; reason?: string };
-      if (!data.success) {
-        const message =
-          data.reason === 'LOCK_EXPIRED' ? 'Your reservation expired. Please try again.' :
-          data.reason === 'SLOT_NOT_LOCKED' ? 'This slot is no longer reserved.' :
-          data.reason === 'NOT_YOUR_LOCK' ? 'This slot is reserved by another user.' :
-          'Purchase failed. Please try again.';
-        show(message, 'error');
+      const result = await purchaseSlotViaPayPal({ eventId, slotId });
+
+      if (result.success) {
+        clear();
+        navigation.navigate('PurchaseSuccess', {
+          purchaseId: result.purchaseId,
+          slotData,
+          eventTitle: 'WWE Topps Chrome 2026 Mega Break 3x',
+          eventId,
+        });
         return;
       }
 
-      clear();
-      navigation.navigate('PurchaseSuccess', {
-        purchaseId: data.purchaseId!,
-        slotData,
-        eventTitle: 'WWE Topps Chrome 2026 Mega Break 3x',
-        eventId,
-      });
+      // success === false — handle each reason
+      if (result.reason === 'CANCELLED') {
+        // User knowingly cancelled in PayPal — no toast.
+        // Best-effort cleanup of any open server-side state.
+        try {
+          await cancelPurchaseFlow({ eventId, slotId });
+        } catch {
+          // Cleanup is best-effort; lock will expire on its own.
+        }
+        return;
+      }
+
+      const fallbackByReason: Record<string, string> = {
+        AMOUNT_MISMATCH: 'Payment amount did not match the slot price. Please try again.',
+        SLOT_SOLD_OTHER: 'This slot was just purchased by someone else.',
+        LOCK_EXPIRED: 'Your reservation expired. Please try again.',
+        REFUND_DECIDED: 'Your payment was refunded. Please try again.',
+        ORDER_VOIDED: 'The PayPal order was voided. Please try again.',
+        NETWORK_ERROR: 'Network error. Please check your connection and try again.',
+        UNKNOWN: 'Purchase failed. Please try again.',
+      };
+      const message = result.message || fallbackByReason[result.reason] || 'Purchase failed. Please try again.';
+      show(message, 'error');
     } catch (e: any) {
       console.error('Purchase error:', e);
       show(e?.message || 'Purchase failed. Please try again.', 'error');
