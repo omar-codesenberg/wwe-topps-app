@@ -207,7 +207,11 @@ export async function finalize(
       })
     : {};
   const newSoldSlots = (event.soldSlots ?? 0) + 1;
-  const isLastSlot = newSoldSlots >= (event.totalSlots ?? 112);
+  // If `totalSlots` is missing from the event doc, never auto-close. Admin
+  // can close manually. Previous behavior used a hardcoded 112 (the seed
+  // event's slot count) which silently produced wrong close decisions for
+  // any other event size.
+  const isLastSlot = newSoldSlots >= (event.totalSlots ?? Infinity);
 
   tx.update(slotRef, {
     status: 'sold',
