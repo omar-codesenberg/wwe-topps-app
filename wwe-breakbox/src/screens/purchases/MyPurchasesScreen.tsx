@@ -36,7 +36,7 @@ export function MyPurchasesScreen() {
   const { purchases, loading, error } = usePurchases();
 
   const sections = groupByEvent(purchases);
-  const totalSpent = purchases.reduce((sum, p) => sum + p.price, 0);
+  const totalSpentCents = purchases.reduce((sum, p) => sum + p.priceCents, 0);
 
   if (loading) {
     return (
@@ -84,7 +84,7 @@ export function MyPurchasesScreen() {
           <View style={styles.divider} />
           <View style={styles.stat}>
             <Text style={[styles.statValue, { color: theme.colors.gold }]}>
-              ${totalSpent.toLocaleString()}
+              ${(totalSpentCents / 100).toFixed(2)}
             </Text>
             <Text style={styles.statLabel}>TOTAL SPENT</Text>
           </View>

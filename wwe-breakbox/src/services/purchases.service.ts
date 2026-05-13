@@ -25,7 +25,13 @@ function docToPurchase(snap: QueryDocumentSnapshot<DocumentData>): Purchase {
     eventTitle: data.eventTitle,
     brand: data.brand,
     tier: data.tier,
-    price: data.price,
+    // Tolerate legacy `price` field on purchase docs from before the migration.
+    priceCents:
+      typeof data.priceCents === 'number'
+        ? data.priceCents
+        : typeof data.price === 'number'
+          ? Math.round(data.price * 100)
+          : 0,
     purchasedAt: data.purchasedAt?.toDate() ?? new Date(),
     transactionId: data.transactionId,
     status: data.status,

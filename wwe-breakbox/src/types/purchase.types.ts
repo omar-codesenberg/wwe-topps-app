@@ -9,7 +9,8 @@ export interface Purchase {
   eventTitle: string;
   brand: Brand;
   tier: Tier;
-  price: number;
+  /** Purchase price in integer cents (e.g., 2500 = $25.00). */
+  priceCents: number;
   purchasedAt: Date;
   transactionId: string;
   status: 'completed';

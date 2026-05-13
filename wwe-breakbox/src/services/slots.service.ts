@@ -20,7 +20,15 @@ function docToSlot(
     wrestlerName: data.wrestlerName,
     members: data.members ?? [],
     brand: data.brand,
-    price: data.price,
+    // Firestore writes since the priceCents migration store `priceCents`. Older
+    // docs may still carry `price` (whole-dollar number) — fall back so reads
+    // don't break before the data migration runs.
+    priceCents:
+      typeof data.priceCents === 'number'
+        ? data.priceCents
+        : typeof data.price === 'number'
+          ? Math.round(data.price * 100)
+          : 0,
     tier: data.tier,
     status: data.status,
     lockedBy: data.lockedBy ?? null,
