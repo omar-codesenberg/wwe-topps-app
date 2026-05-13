@@ -8,7 +8,8 @@ type Brand = 'RAW' | 'SMACKDOWN' | 'NXT' | 'LEGENDS';
 interface SlotInput {
   wrestlerName: string;
   members?: string[];
-  price: number;
+  /** Slot price in integer cents (e.g., 2500 = $25.00). */
+  priceCents: number;
   brand: Brand;
 }
 
@@ -41,8 +42,15 @@ export const createEventWithSlots = functions
       if (!s.wrestlerName || typeof s.wrestlerName !== 'string') {
         throw new functions.https.HttpsError('invalid-argument', `slots[${i}].wrestlerName invalid`);
       }
-      if (typeof s.price !== 'number' || s.price < 0) {
-        throw new functions.https.HttpsError('invalid-argument', `slots[${i}].price invalid`);
+      if (
+        typeof s.priceCents !== 'number' ||
+        !Number.isInteger(s.priceCents) ||
+        s.priceCents <= 0
+      ) {
+        throw new functions.https.HttpsError(
+          'invalid-argument',
+          `slots[${i}].priceCents must be a positive integer (cents)`
+        );
       }
       if (!VALID_BRANDS.includes(s.brand)) {
         throw new functions.https.HttpsError('invalid-argument', `slots[${i}].brand invalid`);
@@ -81,8 +89,8 @@ export const createEventWithSlots = functions
         wrestlerName: s.wrestlerName,
         members: s.members ?? [],
         brand: s.brand,
-        price: s.price,
-        tier: deriveTier(s.price),
+        priceCents: s.priceCents,
+        tier: deriveTier(s.priceCents),
         status: 'available',
         lockedBy: null,
         lockedAt: null,
@@ -105,8 +113,8 @@ export const createEventWithSlots = functions
           wrestlerName: s.wrestlerName,
           members: s.members ?? [],
           brand: s.brand,
-          price: s.price,
-          tier: deriveTier(s.price),
+          priceCents: s.priceCents,
+          tier: deriveTier(s.priceCents),
           status: 'available',
           lockedBy: null,
           lockedAt: null,

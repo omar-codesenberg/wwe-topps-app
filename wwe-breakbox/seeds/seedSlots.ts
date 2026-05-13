@@ -6,7 +6,7 @@
  *   2. Run: npx ts-node seeds/seedSlots.ts
  *
  * Optional: Pass --eventId=<id> to seed into an existing event document.
- * Optional: Pass --limit=<n> to seed only the top N slots by price.
+ * Optional: Pass --limit=<n> to seed only the top N slots by priceCents.
  */
 
 import * as admin from 'firebase-admin';
@@ -57,7 +57,7 @@ function getSlotsToSeed(): typeof SLOTS_DATA {
   const limitArg = process.argv.find((a) => a.startsWith('--limit='));
   if (!limitArg) return SLOTS_DATA;
   const limit = parseInt(limitArg.split('=')[1], 10);
-  return [...SLOTS_DATA].sort((a, b) => b.price - a.price).slice(0, limit);
+  return [...SLOTS_DATA].sort((a, b) => b.priceCents - a.priceCents).slice(0, limit);
 }
 
 async function seedSlots(eventId: string): Promise<string[]> {
@@ -85,8 +85,8 @@ async function seedSlots(eventId: string): Promise<string[]> {
         wrestlerName: slotData.wrestlerName,
         members: slotData.members,
         brand: slotData.brand,
-        price: slotData.price,
-        tier: deriveTier(slotData.price),
+        priceCents: slotData.priceCents,
+        tier: deriveTier(slotData.priceCents),
         status: 'available',
         lockedBy: null,
         lockedAt: null,
@@ -108,7 +108,7 @@ async function setFeaturedSlots(eventId: string, slotIds: string[]): Promise<voi
   const slotsToSeed = getSlotsToSeed();
   const topSlots = slotsToSeed
     .map((slot, index) => ({ ...slot, id: slotIds[index] }))
-    .sort((a, b) => b.price - a.price)
+    .sort((a, b) => b.priceCents - a.priceCents)
     .slice(0, 8)
     .map((s) => s.id)
     .filter(Boolean);
@@ -126,7 +126,7 @@ async function seedUpcomingEvent(): Promise<{ eventId: string; slotCount: number
 
   // Pick a small set of slots (top priced) so this seeded event stays cheap.
   const upcomingSlots = [...SLOTS_DATA]
-    .sort((a, b) => b.price - a.price)
+    .sort((a, b) => b.priceCents - a.priceCents)
     .slice(0, 10);
 
   await db.collection('events').doc(eventId).set({
@@ -153,8 +153,8 @@ async function seedUpcomingEvent(): Promise<{ eventId: string; slotCount: number
       wrestlerName: slotData.wrestlerName,
       members: slotData.members,
       brand: slotData.brand,
-      price: slotData.price,
-      tier: deriveTier(slotData.price),
+      priceCents: slotData.priceCents,
+      tier: deriveTier(slotData.priceCents),
       status: 'available',
       lockedBy: null,
       lockedAt: null,

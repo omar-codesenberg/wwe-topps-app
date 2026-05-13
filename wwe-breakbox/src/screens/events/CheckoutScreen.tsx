@@ -110,7 +110,7 @@ export function CheckoutScreen({ route, navigation }: Props) {
           {slotData.members.length > 0 && (
             <Text style={styles.members}>{slotData.members.join(' • ')}</Text>
           )}
-          <Text style={styles.price}>${slotData.price.toLocaleString()}.00</Text>
+          <Text style={styles.price}>${(slotData.priceCents / 100).toFixed(2)}</Text>
         </View>
 
         {/* Countdown */}

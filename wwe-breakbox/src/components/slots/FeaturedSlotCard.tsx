@@ -28,7 +28,7 @@ export function FeaturedSlotCard({ slot, onPress }: FeaturedSlotCardProps) {
         <View style={styles.body}>
           <Text style={styles.name} numberOfLines={2}>{slot.wrestlerName}</Text>
           <TierBadge tier={slot.tier} />
-          <Text style={styles.price}>${slot.price.toLocaleString()}</Text>
+          <Text style={styles.price}>${(slot.priceCents / 100).toFixed(2)}</Text>
           {isSold && <Text style={styles.statusLabel}>CLAIMED</Text>}
           {isClosed && <Text style={styles.statusLabel}>CLOSED</Text>}
         </View>

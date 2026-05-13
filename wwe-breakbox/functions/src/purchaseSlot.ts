@@ -51,7 +51,7 @@ export const purchaseSlot = functions
           eventTitle: event.title,
           brand: slot.brand,
           tier: slot.tier,
-          price: slot.price,
+          priceCents: slot.priceCents,
           purchasedAt: FieldValue.serverTimestamp(),
           transactionId: uuidv4(), // TODO: Replace with PayPal transaction ID
           status: 'completed',
