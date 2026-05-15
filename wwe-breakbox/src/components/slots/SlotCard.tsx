@@ -70,7 +70,7 @@ export function SlotCard({ slot, currentUserId, onBuySpot, isLocking }: SlotCard
           </View>
           <View style={styles.right}>
             <Text style={[styles.price, isDimmed && styles.dimmedText]}>
-              ${slot.price.toLocaleString()}
+              ${(slot.priceCents / 100).toFixed(2)}
             </Text>
             {isAvailable && (
               <WWEButton

@@ -27,7 +27,7 @@ export function PurchaseHistoryCard({ purchase }: PurchaseHistoryCardProps) {
               {purchase.eventTitle}
             </Text>
           </View>
-          <Text style={styles.price}>${purchase.price.toLocaleString()}</Text>
+          <Text style={styles.price}>${(purchase.priceCents / 100).toFixed(2)}</Text>
         </View>
         <View style={styles.bottomRow}>
           <View style={styles.badges}>

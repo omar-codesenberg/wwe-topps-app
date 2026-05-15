@@ -7,6 +7,13 @@ export { purchaseSlot } from './purchaseSlot';
 export { releaseSlotOnCancel } from './releaseSlotOnCancel';
 export { releaseExpiredLocks } from './releaseExpiredLocks';
 
+// PayPal integration (callables, webhook, and scheduled refund retry).
+export { createPayPalOrder } from './paypal/createOrder';
+export { capturePayPalOrder } from './paypal/captureOrder';
+export { getPayPalOrderStatus } from './paypal/getOrderStatus';
+export { paypalWebhook } from './paypal/webhook';
+export { pendingRefundsRetry } from './paypal/pendingRefundsRetry';
+
 // Admin-only callables (gated by `admin: true` custom claim).
 export { createEventWithSlots } from './admin/createEventWithSlots';
 export { startEvent } from './admin/startEvent';

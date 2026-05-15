@@ -85,7 +85,7 @@ export function PurchaseSuccessScreen({ route, navigation }: Props) {
               <Text style={styles.members}>{slotData.members.join(' • ')}</Text>
             )}
             <TierBadge tier={slotData.tier} size="md" />
-            <Text style={styles.price}>${slotData.price.toLocaleString()}.00</Text>
+            <Text style={styles.price}>${(slotData.priceCents / 100).toFixed(2)}</Text>
           </View>
         </View>
 

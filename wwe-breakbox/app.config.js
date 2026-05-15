@@ -2,6 +2,7 @@ module.exports = {
   expo: {
     name: "BreakBox WWE",
     slug: "wwe-breakbox",
+    scheme: "wwebreakbox",
     version: "1.0.0",
     orientation: "portrait",
     icon: "./assets/icon.png",
@@ -25,7 +26,7 @@ module.exports = {
     web: {
       favicon: "./assets/favicon.png",
     },
-    plugins: ["expo-font"],
+    plugins: ["expo-font", "expo-web-browser"],
     extra: {
       eas: {
         projectId: "a326dc90-ae56-4e26-9a90-d3827b298af0",

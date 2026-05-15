@@ -4,7 +4,8 @@ export type Tier = 'Gold' | 'Silver' | 'Bronze';
 export interface SlotSeedItem {
   wrestlerName: string;
   members: string[];
-  price: number;
+  /** Slot price in integer cents (e.g., 2500 = $25.00). */
+  priceCents: number;
   brand: Brand;
 }
 export interface Slot {
@@ -12,7 +13,8 @@ export interface Slot {
   wrestlerName: string;
   members: string[];
   brand: Brand;
-  price: number;
+  /** Slot price in integer cents (e.g., 2500 = $25.00). */
+  priceCents: number;
   tier: Tier;
   status: SlotStatus;
   lockedBy: string | null;
