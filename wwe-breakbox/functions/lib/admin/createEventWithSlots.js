@@ -59,8 +59,10 @@ exports.createEventWithSlots = functions
         if (!s.wrestlerName || typeof s.wrestlerName !== 'string') {
             throw new functions.https.HttpsError('invalid-argument', `slots[${i}].wrestlerName invalid`);
         }
-        if (typeof s.price !== 'number' || s.price < 0) {
-            throw new functions.https.HttpsError('invalid-argument', `slots[${i}].price invalid`);
+        if (typeof s.priceCents !== 'number' ||
+            !Number.isInteger(s.priceCents) ||
+            s.priceCents <= 0) {
+            throw new functions.https.HttpsError('invalid-argument', `slots[${i}].priceCents must be a positive integer (cents)`);
         }
         if (!VALID_BRANDS.includes(s.brand)) {
             throw new functions.https.HttpsError('invalid-argument', `slots[${i}].brand invalid`);
@@ -95,8 +97,8 @@ exports.createEventWithSlots = functions
             wrestlerName: s.wrestlerName,
             members: (_a = s.members) !== null && _a !== void 0 ? _a : [],
             brand: s.brand,
-            price: s.price,
-            tier: (0, tier_1.deriveTier)(s.price),
+            priceCents: s.priceCents,
+            tier: (0, tier_1.deriveTier)(s.priceCents),
             status: 'available',
             lockedBy: null,
             lockedAt: null,
@@ -118,8 +120,8 @@ exports.createEventWithSlots = functions
                 wrestlerName: s.wrestlerName,
                 members: (_b = s.members) !== null && _b !== void 0 ? _b : [],
                 brand: s.brand,
-                price: s.price,
-                tier: (0, tier_1.deriveTier)(s.price),
+                priceCents: s.priceCents,
+                tier: (0, tier_1.deriveTier)(s.priceCents),
                 status: 'available',
                 lockedBy: null,
                 lockedAt: null,

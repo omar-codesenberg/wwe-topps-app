@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.setUserLegacy = exports.setSlotBrand = exports.setSlotClosed = exports.closeEvent = exports.startEvent = exports.createEventWithSlots = exports.releaseExpiredLocks = exports.releaseSlotOnCancel = exports.purchaseSlot = exports.lockSlot = void 0;
+exports.setUserLegacy = exports.setSlotBrand = exports.setSlotClosed = exports.closeEvent = exports.startEvent = exports.createEventWithSlots = exports.pendingRefundsRetry = exports.paypalWebhook = exports.getPayPalOrderStatus = exports.capturePayPalOrder = exports.createPayPalOrder = exports.releaseExpiredLocks = exports.releaseSlotOnCancel = exports.purchaseSlot = exports.lockSlot = void 0;
+require("dotenv/config");
 // Region note: functions currently deploy to the default us-central1 region.
 // To target a different region (e.g. us-east1), wrap each function with
 // functions.region('us-east1').runWith({...}).https.onCall(...)
@@ -13,6 +14,17 @@ var releaseSlotOnCancel_1 = require("./releaseSlotOnCancel");
 Object.defineProperty(exports, "releaseSlotOnCancel", { enumerable: true, get: function () { return releaseSlotOnCancel_1.releaseSlotOnCancel; } });
 var releaseExpiredLocks_1 = require("./releaseExpiredLocks");
 Object.defineProperty(exports, "releaseExpiredLocks", { enumerable: true, get: function () { return releaseExpiredLocks_1.releaseExpiredLocks; } });
+// PayPal integration (callables, webhook, and scheduled refund retry).
+var createOrder_1 = require("./paypal/createOrder");
+Object.defineProperty(exports, "createPayPalOrder", { enumerable: true, get: function () { return createOrder_1.createPayPalOrder; } });
+var captureOrder_1 = require("./paypal/captureOrder");
+Object.defineProperty(exports, "capturePayPalOrder", { enumerable: true, get: function () { return captureOrder_1.capturePayPalOrder; } });
+var getOrderStatus_1 = require("./paypal/getOrderStatus");
+Object.defineProperty(exports, "getPayPalOrderStatus", { enumerable: true, get: function () { return getOrderStatus_1.getPayPalOrderStatus; } });
+var webhook_1 = require("./paypal/webhook");
+Object.defineProperty(exports, "paypalWebhook", { enumerable: true, get: function () { return webhook_1.paypalWebhook; } });
+var pendingRefundsRetry_1 = require("./paypal/pendingRefundsRetry");
+Object.defineProperty(exports, "pendingRefundsRetry", { enumerable: true, get: function () { return pendingRefundsRetry_1.pendingRefundsRetry; } });
 // Admin-only callables (gated by `admin: true` custom claim).
 var createEventWithSlots_1 = require("./admin/createEventWithSlots");
 Object.defineProperty(exports, "createEventWithSlots", { enumerable: true, get: function () { return createEventWithSlots_1.createEventWithSlots; } });

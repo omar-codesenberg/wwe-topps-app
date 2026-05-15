@@ -34,12 +34,21 @@ var __importStar = (this && this.__importStar) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.purchaseSlot = void 0;
+// TODO(paypal-cutover): remove this callable once PayPal flow is verified in production. See plan file #14.
+//
+// Legacy purchaseSlot callable. Kept around so the existing mobile app keeps
+// working through the PayPal cutover. The body now delegates to the shared
+// `finalize()` helper that the new PayPal capture / webhook handlers also use,
+// with a synthetic `legacy:<uuid>` captureId so legacy and PayPal-issued
+// captures live in disjoint ID spaces inside `purchases/`.
 const functions = __importStar(require("firebase-functions"));
 const uuid_1 = require("uuid");
 const admin_1 = require("./utils/admin");
+const finalizeSlotPurchase_1 = require("./purchases/finalizeSlotPurchase");
 exports.purchaseSlot = functions
     .runWith({ minInstances: 0 })
     .https.onCall(async (data, context) => {
+    var _a;
     if (!context.auth) {
         throw new functions.https.HttpsError('unauthenticated', 'Must be authenticated');
     }
@@ -49,59 +58,47 @@ exports.purchaseSlot = functions
     }
     const uid = context.auth.uid;
     const slotRef = admin_1.db.collection('events').doc(eventId).collection('slots').doc(slotId);
-    const eventRef = admin_1.db.collection('events').doc(eventId);
     try {
-        const result = await admin_1.db.runTransaction(async (transaction) => {
-            var _a;
-            const [slotDoc, eventDoc] = await Promise.all([
-                transaction.get(slotRef),
-                transaction.get(eventRef),
-            ]);
-            if (!slotDoc.exists || !eventDoc.exists)
-                return { success: false, reason: 'NOT_FOUND' };
-            const slot = slotDoc.data();
-            const event = eventDoc.data();
-            if (slot.status !== 'locked')
+        // Read the slot once outside the transaction just to get `priceCents`
+        // for the finalize amount. (The transaction inside `finalize` re-reads
+        // the slot atomically and validates state.)
+        const slotDoc = await slotRef.get();
+        if (!slotDoc.exists) {
+            return { success: false, reason: 'NOT_FOUND' };
+        }
+        const slot = slotDoc.data();
+        const amountCents = (_a = slot.priceCents) !== null && _a !== void 0 ? _a : 0;
+        const captureId = `legacy:${(0, uuid_1.v4)()}`;
+        const result = await admin_1.db.runTransaction((tx) => (0, finalizeSlotPurchase_1.finalize)(tx, {
+            captureId,
+            orderId: 'legacy',
+            eventId,
+            slotId,
+            userId: uid,
+            amountCents,
+            correlationId: 'legacy',
+            paypalEnv: 'sandbox',
+        }));
+        // Preserve the legacy callable response shape so existing mobile clients
+        // continue to work without redeploying the app.
+        switch (result.status) {
+            case 'finalized':
+                return { success: true, purchaseId: result.purchaseId };
+            case 'already_finalized':
+                // Extremely unlikely with a fresh uuid; treat as success for the client.
+                return { success: true, purchaseId: result.purchaseId };
+            case 'already_sold_other':
+                // Mirrors the prior NOT_YOUR_LOCK / SLOT_NOT_LOCKED branches.
                 return { success: false, reason: 'SLOT_NOT_LOCKED' };
-            if (slot.lockedBy !== uid)
-                return { success: false, reason: 'NOT_YOUR_LOCK' };
-            const lockedUntil = (_a = slot.lockedUntil) === null || _a === void 0 ? void 0 : _a.toDate();
-            if (lockedUntil && lockedUntil < new Date())
+            case 'lock_expired':
                 return { success: false, reason: 'LOCK_EXPIRED' };
-            const purchaseId = (0, uuid_1.v4)();
-            const purchaseRef = admin_1.db.collection('purchases').doc(purchaseId);
-            const userRef = admin_1.db.collection('users').doc(uid);
-            const newSoldSlots = (event.soldSlots || 0) + 1;
-            const isLastSlot = newSoldSlots >= (event.totalSlots || 112);
-            transaction.update(slotRef, {
-                status: 'sold',
-                purchasedBy: uid,
-                purchasedAt: admin_1.FieldValue.serverTimestamp(),
-                lockedBy: null,
-                lockedAt: null,
-                lockedUntil: null,
-            });
-            transaction.set(purchaseRef, {
-                id: purchaseId,
-                userId: uid,
-                eventId,
-                slotId,
-                wrestlerName: slot.wrestlerName,
-                eventTitle: event.title,
-                brand: slot.brand,
-                tier: slot.tier,
-                price: slot.price,
-                purchasedAt: admin_1.FieldValue.serverTimestamp(),
-                transactionId: (0, uuid_1.v4)(), // TODO: Replace with PayPal transaction ID
-                status: 'completed',
-            });
-            transaction.update(eventRef, Object.assign({ soldSlots: admin_1.FieldValue.increment(1) }, (isLastSlot ? { status: 'closed', closesAt: admin_1.FieldValue.serverTimestamp() } : {})));
-            transaction.update(userRef, {
-                purchaseCount: admin_1.FieldValue.increment(1),
-            });
-            return { success: true, purchaseId };
-        });
-        return result;
+            case 'refund_decided':
+                // Cannot occur on the legacy path (no real PayPal refund pipeline),
+                // but surface a stable reason if it ever does.
+                return { success: false, reason: 'REFUND_DECIDED' };
+            default:
+                return { success: false, reason: 'UNKNOWN' };
+        }
     }
     catch (error) {
         console.error('purchaseSlot error:', error);
