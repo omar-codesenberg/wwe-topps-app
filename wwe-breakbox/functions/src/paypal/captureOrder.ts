@@ -179,6 +179,21 @@ export const capturePayPalOrder = functions
     }
 
     // ---- PayPal capture call --------------------------------------------
+    // Negative-testing hook: in sandbox only, if
+    // `PAYPAL_SANDBOX_MOCK_APPLICATION_CODE` is set (e.g. `INSTRUMENT_DECLINED`,
+    // `PAYER_ACCOUNT_RESTRICTED`, `TRANSACTION_REFUSED`), PayPal's sandbox
+    // returns a simulated failure with that application code so we can
+    // validate decline paths without manipulating buyer balances. See
+    // docs/payments-runbook.md §4 "Negative testing".
+    const mockApplicationCode =
+      PAYPAL_ENV === 'sandbox'
+        ? process.env.PAYPAL_SANDBOX_MOCK_APPLICATION_CODE
+        : undefined;
+    const mockResponse =
+      mockApplicationCode && mockApplicationCode.length > 0
+        ? { mockApplicationCodes: mockApplicationCode }
+        : undefined;
+
     let response: ProjectedCaptureResponse;
     try {
       response = await request<ProjectedCaptureResponse>(
@@ -189,6 +204,7 @@ export const capturePayPalOrder = functions
           requestId: `capture:${orderId}`,
           project: projectCapture,
           correlationId,
+          mockResponse,
         },
       );
     } catch (err) {

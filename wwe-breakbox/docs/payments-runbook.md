@@ -183,6 +183,61 @@ Then in the PayPal Dashboard → Apps & Credentials → your sandbox app → Web
 - Webhook signatures are still verified locally — the `PAYPAL_WEBHOOK_ID_SANDBOX` value must match the registered webhook (which it will, since you're using the same one).
 - App Check enforcement is tunable in the emulator. If a debug token isn't getting through, set the `FIREBASE_APP_CHECK_DEBUG_TOKEN` env on the functions emulator process.
 
+### Negative testing — forcing capture failures (sandbox only)
+
+Two ways to validate that the app correctly refuses to finalize a purchase when PayPal declines the capture (low balance, restricted account, generic decline). Both should produce the same client-visible outcome: capture returns an error, the slot is not finalized, no `purchases/{captureId}` doc is written, and the slot lock releases on the next sweep.
+
+**Option A — edit a sandbox buyer's funding (manual / exploratory):**
+
+1. PayPal Dashboard → Apps & Credentials → Sandbox tab → Accounts → click your **Personal (Buyer)** account → `⋯` → **View/Edit Account**.
+2. On the **Funding** tab, set the PayPal balance below the order amount (e.g. `$1.00 CAD` for a `$25` slot).
+3. **Critical:** delete linked cards and zero out linked bank balances on the same screen. PayPal checkout will silently fall back to any working funding source — if you only lower the balance, the capture still succeeds.
+4. Run the mobile flow against this buyer; PayPal's approval screen should block completion.
+
+This is fine for one-off exploratory runs but is fiddly to set up and easy to misconfigure (a forgotten linked card masks the decline as a success).
+
+**Option B (recommended) — deterministic mock responses via `PAYPAL_SANDBOX_MOCK_APPLICATION_CODE`:**
+
+The capture path in [`functions/src/paypal/captureOrder.ts`](../functions/src/paypal/captureOrder.ts) reads `process.env.PAYPAL_SANDBOX_MOCK_APPLICATION_CODE` and, when set in a sandbox deploy, forwards it as PayPal's `PayPal-Mock-Response` header on the `/v2/checkout/orders/{id}/capture` call. PayPal's sandbox then returns a simulated `422 UNPROCESSABLE_ENTITY` with that application code, regardless of the buyer's actual funding. The flag is hard-gated on `PAYPAL_ENV === 'sandbox'` in code, so it is inert on live even if leaked into the wrong env file — but treat it as sandbox-only anyway and never set it on a prod project.
+
+Useful codes (from PayPal's Orders v2 docs):
+
+| Code | Simulates |
+|---|---|
+| `INSTRUMENT_DECLINED` | Low PayPal balance / card decline — buyer has no working funding source |
+| `PAYER_ACCOUNT_RESTRICTED` | Buyer's PayPal account is restricted (holds, compliance) |
+| `PAYEE_ACCOUNT_RESTRICTED` | Merchant account restricted (useful for going-live readiness checks) |
+| `TRANSACTION_REFUSED` | Generic refusal — covers the broadest decline surface |
+| `INTERNAL_SERVER_ERROR` | PayPal 5xx — exercises our `SanitizedError` 500-path |
+
+**Run it against the emulator:**
+
+```bash
+# Functions emulator with the mock code injected
+PAYPAL_SANDBOX_MOCK_APPLICATION_CODE=INSTRUMENT_DECLINED \
+  firebase emulators:start --only functions,firestore
+```
+
+**Run it against a deployed sandbox** (do NOT do this against a prod project):
+
+```bash
+firebase use <sandbox-project-id>
+firebase deploy --only functions:capturePayPalOrder \
+  --set-env-vars PAYPAL_SANDBOX_MOCK_APPLICATION_CODE=INSTRUMENT_DECLINED
+# When done, redeploy without the flag to revert:
+firebase deploy --only functions:capturePayPalOrder
+```
+
+**Verification checklist for either option:**
+
+- [ ] Cloud Logging shows `paypal_request_error` from `client.ts` with the expected `paypalCode` (e.g. `INSTRUMENT_DECLINED`).
+- [ ] Cloud Logging shows `paypal_capture_failed` from `captureOrder.ts` immediately after.
+- [ ] No `purchases/{captureId}` doc is written.
+- [ ] The `paypalOrders/{orderId}` doc remains in its pre-capture status (not flipped to `captured`).
+- [ ] The slot does NOT flip to `sold`; `releaseExpiredLocks` clears the lock on the next sweep (or the user can retry).
+- [ ] Mobile client surfaces a "payment declined" error to the user.
+- [ ] No refund is issued — there was no successful capture to refund.
+
 ---
 
 ## 5. Going-live checklist
