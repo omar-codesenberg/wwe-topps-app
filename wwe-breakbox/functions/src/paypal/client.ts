@@ -44,6 +44,15 @@ export interface RequestOptions<TProjected> {
   project: (resp: unknown) => TProjected;
   /** correlationId threaded through logs (S16). */
   correlationId?: string;
+  /**
+   * Sandbox-only: when set, sends a `PayPal-Mock-Response` header so PayPal's
+   * sandbox returns a specific simulated application-code failure (e.g.
+   * `INSTRUMENT_DECLINED`). The header is silently ignored on live, but
+   * callers MUST still gate on `PAYPAL_ENV === 'sandbox'` themselves so this
+   * code path can never be exercised against the live API.
+   * See: https://developer.paypal.com/api/rest/sandbox/mock-responses/
+   */
+  mockResponse?: { mockApplicationCodes: string };
 }
 
 // ---------------------------------------------------------------------------
@@ -229,6 +238,11 @@ export async function request<TProjected>(
   };
   if (opts?.requestId) {
     headers['PayPal-Request-Id'] = opts.requestId;
+  }
+  if (opts?.mockResponse) {
+    headers['PayPal-Mock-Response'] = JSON.stringify({
+      mock_application_codes: opts.mockResponse.mockApplicationCodes,
+    });
   }
 
   let res: Response;

@@ -498,6 +498,59 @@ describe('capturePayPalOrder — finalize branches [S10]', () => {
   });
 });
 
+describe('capturePayPalOrder — sandbox negative-testing hook', () => {
+  const ENV_KEY = 'PAYPAL_SANDBOX_MOCK_APPLICATION_CODE';
+  const originalValue = process.env[ENV_KEY];
+
+  afterEach(() => {
+    if (originalValue === undefined) {
+      delete process.env[ENV_KEY];
+    } else {
+      process.env[ENV_KEY] = originalValue;
+    }
+  });
+
+  test('PAYPAL_SANDBOX_MOCK_APPLICATION_CODE unset → no mockResponse passed to request()', async () => {
+    delete process.env[ENV_KEY];
+    seedOrder({ expectedAmount: '10.10' });
+    requestMock.mockResolvedValue(captureResponse('CAP1', '10.10'));
+    finalizeMock.mockResolvedValue({ status: 'finalized', purchaseId: 'CAP1' });
+
+    await invoke({ orderId: ORDER_ID }, { uid: USER_A });
+
+    expect(requestMock).toHaveBeenCalledTimes(1);
+    const opts = requestMock.mock.calls[0][3];
+    expect(opts.mockResponse).toBeUndefined();
+  });
+
+  test('PAYPAL_SANDBOX_MOCK_APPLICATION_CODE set → mockResponse threaded into request()', async () => {
+    process.env[ENV_KEY] = 'INSTRUMENT_DECLINED';
+    seedOrder({ expectedAmount: '10.10' });
+    requestMock.mockResolvedValue(captureResponse('CAP1', '10.10'));
+    finalizeMock.mockResolvedValue({ status: 'finalized', purchaseId: 'CAP1' });
+
+    await invoke({ orderId: ORDER_ID }, { uid: USER_A });
+
+    expect(requestMock).toHaveBeenCalledTimes(1);
+    const opts = requestMock.mock.calls[0][3];
+    expect(opts.mockResponse).toEqual({
+      mockApplicationCodes: 'INSTRUMENT_DECLINED',
+    });
+  });
+
+  test('empty string treated as unset (defensive against a blank env file)', async () => {
+    process.env[ENV_KEY] = '';
+    seedOrder({ expectedAmount: '10.10' });
+    requestMock.mockResolvedValue(captureResponse('CAP1', '10.10'));
+    finalizeMock.mockResolvedValue({ status: 'finalized', purchaseId: 'CAP1' });
+
+    await invoke({ orderId: ORDER_ID }, { uid: USER_A });
+
+    const opts = requestMock.mock.calls[0][3];
+    expect(opts.mockResponse).toBeUndefined();
+  });
+});
+
 describe('capturePayPalOrder — refund delegation [S11]', () => {
   test('refund call passes the captureId returned by PayPal (request-id template enforced inside refund.ts)', async () => {
     seedOrder({ expectedAmount: '10.10' });
