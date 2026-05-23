@@ -200,6 +200,29 @@ jsonPayload.error.issue="INSTRUMENT_DECLINED"
 
 If `issue` is absent from a log entry, PayPal didn't supply a `details` array on that error (rare on Orders v2; common on auth errors). Fall back to `paypalCode` + `message` for those.
 
+### User-facing error mapping (what the mobile client actually shows)
+
+Server-side mapping in [`functions/src/paypal/userFacingErrors.ts`](../functions/src/paypal/userFacingErrors.ts) compiles raw PayPal codes down to a small user-safe enum before the error leaves the function boundary. The mobile client only ever sees the mapped category — never the raw PayPal `issue` or `paypalCode`.
+
+| User-facing code | Maps from (PayPal `issue` / status) | Message shown to user |
+|---|---|---|
+| `INSTRUMENT_DECLINED` | `INSTRUMENT_DECLINED` | "Your payment method was declined. Please try a different card or funding source." |
+| `CARD_EXPIRED` | `CARD_EXPIRED` | "The card on file has expired. Please update your payment method and try again." |
+| `TEMPORARY_ERROR` | Any PayPal 5xx, OR `paypalCode === 'INTERNAL_SERVER_ERROR'` | "PayPal is temporarily unavailable. Please try again in a moment." |
+| `CONTACT_SUPPORT` | `PAYER_CANNOT_PAY`, `PAYER_ACCOUNT_RESTRICTED`, `PAYEE_ACCOUNT_RESTRICTED`, `TRANSACTION_REFUSED`, `PAYMENT_DENIED`, `COMPLIANCE_VIOLATION`, `TRANSACTION_BLOCKED_BY_PAYEE`, `AGREEMENT_ALREADY_CANCELLED`, `PAYER_ACCOUNT_LOCKED_OR_CLOSED`, `MAX_NUMBER_OF_PAYMENT_ATTEMPTS_EXCEEDED` | "Your payment couldn't be completed. Please try a different account or contact PayPal." |
+| `GENERIC_DECLINE` | Anything else (unknown / new PayPal codes / no issue field) | "Your payment couldn't be completed. Please try again or use a different payment method." |
+
+**Why the `CONTACT_SUPPORT` bucket exists:** all those codes describe risk-model outcomes or account state. We deliberately don't tell the user what went wrong specifically — telling them lets fraudsters confirm they've tripped detection and pivot, and leaks PayPal-internal state into our UI.
+
+**To debug a specific user-visible error:** find the user's `correlationId` in the mobile app's support flow, then query Cloud Logging for that id. The log entry will contain BOTH `userFacingCode` (what they saw) AND `error.issue` (the raw PayPal cause).
+
+```
+jsonPayload.correlationId="<corr-id>"
+jsonPayload.message="paypal_capture_failed"
+```
+
+**To add a new PayPal code to a category:** edit the relevant set in [`userFacingErrors.ts`](../functions/src/paypal/userFacingErrors.ts), add a test case in [`userFacingErrors.test.ts`](../functions/src/__tests__/userFacingErrors.test.ts), redeploy. No mobile rebuild needed — the mapping is server-side.
+
 ### Negative testing — forcing capture failures (sandbox only)
 
 Two ways to validate that the app correctly refuses to finalize a purchase when PayPal declines the capture (low balance, restricted account, generic decline). Both should produce the same client-visible outcome: capture returns an error, the slot is not finalized, no `purchases/{captureId}` doc is written, and the slot lock releases on the next sweep.
