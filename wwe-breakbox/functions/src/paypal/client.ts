@@ -30,7 +30,20 @@ import * as logger from '../utils/logger';
 export interface SanitizedError extends Error {
   status?: number;
   debugId?: string;
+  /**
+   * Top-level PayPal error name (the HTTP-category code, e.g. `UNPROCESSABLE_ENTITY`,
+   * `AUTHENTICATION_FAILURE`, `INVALID_REQUEST`).
+   */
   paypalCode?: string;
+  /**
+   * Specific PayPal application code from `details[0].issue` when present
+   * (e.g. `INSTRUMENT_DECLINED`, `PAYER_ACCOUNT_RESTRICTED`,
+   * `TRANSACTION_REFUSED`). Lives below `paypalCode` in PayPal's response
+   * shape and is the field operators actually need for triage. Use this as
+   * the alerting label whenever it's set; fall back to `paypalCode` only
+   * when it's undefined.
+   */
+  issue?: string;
 }
 
 export interface RequestOptions<TProjected> {
@@ -128,6 +141,22 @@ interface PayPalErrorBody {
   message?: unknown;
   name?: unknown;
   debug_id?: unknown;
+  details?: unknown;
+}
+
+/**
+ * Extract `details[0].issue` from a PayPal error body if it's a string.
+ * PayPal nests the specific application code (e.g. `INSTRUMENT_DECLINED`)
+ * one level below the top-level `name` (which is the broader HTTP category
+ * like `UNPROCESSABLE_ENTITY`). Defensive against malformed bodies — any
+ * shape mismatch returns `undefined` rather than throwing.
+ */
+function extractIssue(details: unknown): string | undefined {
+  if (!Array.isArray(details) || details.length === 0) return undefined;
+  const first = details[0];
+  if (first === null || typeof first !== 'object') return undefined;
+  const issue = (first as Record<string, unknown>).issue;
+  return typeof issue === 'string' && issue.length > 0 ? issue : undefined;
 }
 
 /**
@@ -148,6 +177,7 @@ function buildSanitizedError(
       : fallbackMessage;
   const paypalCode = typeof body.name === 'string' ? body.name : undefined;
   const debugId = typeof body.debug_id === 'string' ? body.debug_id : undefined;
+  const issue = extractIssue(body.details);
 
   // Construct the error with a null prototype so `instanceof Error` checks work
   // via the inherited message/stack mechanics — but we still want the thrown
@@ -158,6 +188,7 @@ function buildSanitizedError(
   err.status = status;
   if (debugId !== undefined) err.debugId = debugId;
   if (paypalCode !== undefined) err.paypalCode = paypalCode;
+  if (issue !== undefined) err.issue = issue;
 
   // Hard guarantee: nothing on this error should reference the raw response,
   // request init, headers, or any axios-like config blob. We constructed the
