@@ -44,6 +44,11 @@ const SAFE_ERROR_FIELDS: readonly string[] = [
   'code',
   'debugId',
   'paypalCode',
+  // `issue` carries the specific PayPal application code from
+  // `details[0].issue` (e.g. `INSTRUMENT_DECLINED`, `PAYER_ACCOUNT_RESTRICTED`).
+  // It's the actionable label operators dashboard on — `paypalCode` alone is
+  // usually the broader HTTP-category code (`UNPROCESSABLE_ENTITY`).
+  'issue',
 ];
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {

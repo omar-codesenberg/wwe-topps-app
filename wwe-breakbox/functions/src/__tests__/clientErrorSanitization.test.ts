@@ -170,6 +170,156 @@ describe('paypal/client — [C21] error sanitization', () => {
     assertNoForbiddenKeys(err, 5);
   });
 
+  test('422 with details[0].issue: specific application code is extracted onto `issue`', async () => {
+    // Real-shape PayPal 422 — INSTRUMENT_DECLINED nested under details.
+    const fetchMock = jest
+      .fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        text: async () => JSON.stringify({ access_token: 'tok-iss', expires_in: 32400 }),
+        json: async () => ({ access_token: 'tok-iss', expires_in: 32400 }),
+      })
+      .mockResolvedValueOnce({
+        ok: false,
+        status: 422,
+        text: async () =>
+          JSON.stringify({
+            name: 'UNPROCESSABLE_ENTITY',
+            message: 'The requested action could not be performed.',
+            debug_id: 'deadbeef',
+            details: [
+              {
+                issue: 'INSTRUMENT_DECLINED',
+                description: 'The instrument was declined by the processor.',
+              },
+            ],
+          }),
+        json: async () => ({}),
+      });
+
+    global.fetch = fetchMock as unknown as typeof fetch;
+
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const client = require('../paypal/client') as typeof import('../paypal/client');
+    client._resetTokenCacheForTests();
+
+    let thrown: unknown;
+    try {
+      await client.request('POST', '/v2/checkout/orders/ABC/capture', {}, {
+        project: (r: unknown) => r as Record<string, unknown>,
+      });
+    } catch (e) {
+      thrown = e;
+    }
+
+    const err = thrown as import('../paypal/client').SanitizedError;
+    expect(err.paypalCode).toBe('UNPROCESSABLE_ENTITY');
+    expect(err.issue).toBe('INSTRUMENT_DECLINED');
+    expect(err.status).toBe(422);
+    expect(err.debugId).toBe('deadbeef');
+
+    // The full details array must NOT have been attached to the error.
+    expect((err as unknown as Record<string, unknown>).details).toBeUndefined();
+
+    // Still nothing forbidden reachable from the error graph.
+    assertNoForbiddenKeys(err, 5);
+  });
+
+  test('422 without details: `issue` is undefined; other fields still set', async () => {
+    const fetchMock = jest
+      .fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        text: async () => JSON.stringify({ access_token: 'tok-no-iss', expires_in: 32400 }),
+        json: async () => ({ access_token: 'tok-no-iss', expires_in: 32400 }),
+      })
+      .mockResolvedValueOnce({
+        ok: false,
+        status: 422,
+        text: async () =>
+          JSON.stringify({
+            name: 'UNPROCESSABLE_ENTITY',
+            message: 'Generic failure with no details.',
+            debug_id: 'no-details',
+          }),
+        json: async () => ({}),
+      });
+    global.fetch = fetchMock as unknown as typeof fetch;
+
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const client = require('../paypal/client') as typeof import('../paypal/client');
+    client._resetTokenCacheForTests();
+
+    let thrown: unknown;
+    try {
+      await client.request('POST', '/v2/checkout/orders/XYZ/capture', {}, {
+        project: (r: unknown) => r as Record<string, unknown>,
+      });
+    } catch (e) {
+      thrown = e;
+    }
+
+    const err = thrown as import('../paypal/client').SanitizedError;
+    expect(err.paypalCode).toBe('UNPROCESSABLE_ENTITY');
+    expect(err.issue).toBeUndefined();
+    expect(err.debugId).toBe('no-details');
+  });
+
+  test('Malformed details (not an array / non-object first element / no string issue) → issue undefined, no throw', async () => {
+    const malformedShapes = [
+      { details: 'not-an-array' },
+      { details: [] },
+      { details: [null] },
+      { details: [{ issue: 42 }] },
+      { details: [{ description: 'has no issue field' }] },
+      { details: [{ issue: '' }] }, // empty string treated as absent
+    ];
+
+    for (const body of malformedShapes) {
+      const fetchMock = jest
+        .fn()
+        .mockResolvedValueOnce({
+          ok: true,
+          status: 200,
+          text: async () => JSON.stringify({ access_token: 'tok-mal', expires_in: 32400 }),
+          json: async () => ({ access_token: 'tok-mal', expires_in: 32400 }),
+        })
+        .mockResolvedValueOnce({
+          ok: false,
+          status: 422,
+          text: async () =>
+            JSON.stringify({
+              name: 'UNPROCESSABLE_ENTITY',
+              message: 'malformed',
+              debug_id: 'mal',
+              ...body,
+            }),
+          json: async () => ({}),
+        });
+      global.fetch = fetchMock as unknown as typeof fetch;
+
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const client = require('../paypal/client') as typeof import('../paypal/client');
+      client._resetTokenCacheForTests();
+
+      let thrown: unknown;
+      try {
+        await client.request('POST', '/v2/checkout/orders/MAL/capture', {}, {
+          project: (r: unknown) => r as Record<string, unknown>,
+        });
+      } catch (e) {
+        thrown = e;
+      }
+
+      const err = thrown as import('../paypal/client').SanitizedError;
+      expect(err.issue).toBeUndefined();
+      expect(err.paypalCode).toBe('UNPROCESSABLE_ENTITY');
+      jest.resetModules();
+    }
+  });
+
   test('Success: caller projection applied; raw body fields not reachable', async () => {
     const successBody = {
       id: 'ORD-1',

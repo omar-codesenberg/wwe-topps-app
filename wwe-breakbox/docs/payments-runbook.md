@@ -183,6 +183,23 @@ Then in the PayPal Dashboard → Apps & Credentials → your sandbox app → Web
 - Webhook signatures are still verified locally — the `PAYPAL_WEBHOOK_ID_SANDBOX` value must match the registered webhook (which it will, since you're using the same one).
 - App Check enforcement is tunable in the emulator. If a debug token isn't getting through, set the `FIREBASE_APP_CHECK_DEBUG_TOKEN` env on the functions emulator process.
 
+### Reading PayPal error codes in logs
+
+PayPal returns two layers of error code on a failed call:
+
+- **Top-level `name`** (broad HTTP category — e.g. `UNPROCESSABLE_ENTITY`, `AUTHENTICATION_FAILURE`, `INVALID_REQUEST`). Logged as `error.paypalCode`.
+- **`details[0].issue`** (specific application code — e.g. `INSTRUMENT_DECLINED`, `PAYER_ACCOUNT_RESTRICTED`, `TRANSACTION_REFUSED`, `CARD_EXPIRED`). Logged as `error.issue`.
+
+For triage, **`error.issue` is the field you want.** `paypalCode` is too coarse — virtually every Orders v2 capture failure surfaces the same `UNPROCESSABLE_ENTITY` at the top level.
+
+```bash
+# Cloud Logging filter — find every INSTRUMENT_DECLINED across the project
+resource.type="cloud_function"
+jsonPayload.error.issue="INSTRUMENT_DECLINED"
+```
+
+If `issue` is absent from a log entry, PayPal didn't supply a `details` array on that error (rare on Orders v2; common on auth errors). Fall back to `paypalCode` + `message` for those.
+
 ### Negative testing — forcing capture failures (sandbox only)
 
 Two ways to validate that the app correctly refuses to finalize a purchase when PayPal declines the capture (low balance, restricted account, generic decline). Both should produce the same client-visible outcome: capture returns an error, the slot is not finalized, no `purchases/{captureId}` doc is written, and the slot lock releases on the next sweep.
