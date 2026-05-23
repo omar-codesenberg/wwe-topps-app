@@ -498,6 +498,119 @@ describe('capturePayPalOrder — finalize branches [S10]', () => {
   });
 });
 
+describe('capturePayPalOrder — user-facing error mapping on capture failure', () => {
+  test('PayPal returns INSTRUMENT_DECLINED → HttpsError with INSTRUMENT_DECLINED code + safe message; raw paypal codes NOT in client message', async () => {
+    seedOrder({ expectedAmount: '10.10' });
+
+    // Simulate the SanitizedError that client.ts would throw for a real
+    // PayPal INSTRUMENT_DECLINED.
+    const sanitized = new Error('The requested action could not be performed, semantically incorrect, or failed business validation.') as Error & {
+      status?: number;
+      paypalCode?: string;
+      issue?: string;
+      debugId?: string;
+    };
+    sanitized.name = 'PayPalAPIError';
+    sanitized.status = 422;
+    sanitized.paypalCode = 'UNPROCESSABLE_ENTITY';
+    sanitized.issue = 'INSTRUMENT_DECLINED';
+    sanitized.debugId = 'abc123';
+    requestMock.mockRejectedValue(sanitized);
+
+    let caught: unknown;
+    try {
+      await invoke({ orderId: ORDER_ID }, { uid: USER_A });
+    } catch (e) {
+      caught = e;
+    }
+    expect(caught).toBeDefined();
+
+    const err = caught as { code: string; message: string; details?: { code?: string } };
+    expect(err.code).toBe('internal');
+    expect(err.details?.code).toBe('INSTRUMENT_DECLINED');
+    expect(err.message).toMatch(/declined/i);
+
+    // SECURITY: raw PayPal codes and the raw English message must NOT
+    // appear in the client-facing message.
+    expect(err.message).not.toContain('INSTRUMENT_DECLINED');
+    expect(err.message).not.toContain('UNPROCESSABLE_ENTITY');
+    expect(err.message).not.toContain('semantically incorrect');
+    expect(err.message).not.toContain('abc123');
+
+    // No finalize, no refund (no capture happened to refund).
+    expect(finalizeMock).not.toHaveBeenCalled();
+    expect(refundCaptureMock).not.toHaveBeenCalled();
+  });
+
+  test('PayPal returns TRANSACTION_REFUSED → HttpsError with CONTACT_SUPPORT code; no PayPal specifics leaked', async () => {
+    seedOrder({ expectedAmount: '10.10' });
+    const sanitized = new Error('refused') as Error & {
+      status?: number;
+      paypalCode?: string;
+      issue?: string;
+    };
+    sanitized.name = 'PayPalAPIError';
+    sanitized.status = 422;
+    sanitized.paypalCode = 'UNPROCESSABLE_ENTITY';
+    sanitized.issue = 'TRANSACTION_REFUSED';
+    requestMock.mockRejectedValue(sanitized);
+
+    let caught: unknown;
+    try {
+      await invoke({ orderId: ORDER_ID }, { uid: USER_A });
+    } catch (e) {
+      caught = e;
+    }
+
+    const err = caught as { code: string; message: string; details?: { code?: string } };
+    expect(err.details?.code).toBe('CONTACT_SUPPORT');
+    // Must not tell the user this was a fraud-model refusal.
+    expect(err.message).not.toMatch(/refused|fraud|risk/i);
+    expect(err.message).not.toContain('TRANSACTION_REFUSED');
+  });
+
+  test('PayPal returns 500 → HttpsError with TEMPORARY_ERROR code; try-again copy', async () => {
+    seedOrder({ expectedAmount: '10.10' });
+    const sanitized = new Error('PayPal API error (500)') as Error & {
+      status?: number;
+      paypalCode?: string;
+    };
+    sanitized.name = 'PayPalAPIError';
+    sanitized.status = 500;
+    sanitized.paypalCode = 'INTERNAL_SERVER_ERROR';
+    requestMock.mockRejectedValue(sanitized);
+
+    let caught: unknown;
+    try {
+      await invoke({ orderId: ORDER_ID }, { uid: USER_A });
+    } catch (e) {
+      caught = e;
+    }
+
+    const err = caught as { details?: { code?: string }; message: string };
+    expect(err.details?.code).toBe('TEMPORARY_ERROR');
+    expect(err.message).toMatch(/temporarily|try again/i);
+  });
+
+  test('Unknown / undefined PayPal code → HttpsError with GENERIC_DECLINE code', async () => {
+    seedOrder({ expectedAmount: '10.10' });
+    const sanitized = new Error('weird new code') as Error & { status?: number };
+    sanitized.name = 'PayPalAPIError';
+    sanitized.status = 422;
+    requestMock.mockRejectedValue(sanitized);
+
+    let caught: unknown;
+    try {
+      await invoke({ orderId: ORDER_ID }, { uid: USER_A });
+    } catch (e) {
+      caught = e;
+    }
+
+    const err = caught as { details?: { code?: string } };
+    expect(err.details?.code).toBe('GENERIC_DECLINE');
+  });
+});
+
 describe('capturePayPalOrder — sandbox negative-testing hook', () => {
   const ENV_KEY = 'PAYPAL_SANDBOX_MOCK_APPLICATION_CODE';
   const originalValue = process.env[ENV_KEY];

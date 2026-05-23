@@ -32,6 +32,7 @@ import { request, SanitizedError } from './client';
 import { refundCapture } from './refund';
 import { finalize } from '../purchases/finalizeSlotPurchase';
 import * as logger from '../utils/logger';
+import { mapPayPalIssueToUserFacing } from './userFacingErrors';
 import {
   PAYPAL_CLIENT_ID,
   PAYPAL_CLIENT_SECRET,
@@ -211,10 +212,25 @@ export const capturePayPalOrder = functions
       // SanitizedError from client.ts. Surface as internal — callers can
       // safely retry: the deterministic request-id makes PayPal idempotent.
       const sErr = err as SanitizedError;
-      log.error('paypal_capture_failed', sErr, { orderId });
+
+      // Map PayPal's raw error into a user-safe category before throwing
+      // back to the mobile client. NEVER pass `sErr.message` (raw PayPal
+      // text) or `sErr.issue`/`sErr.paypalCode` (raw PayPal codes) to the
+      // client — those can leak risk-model outcomes or account-state hints.
+      // The raw codes stay in our Cloud Logging entry for operator triage.
+      const userFacing = mapPayPalIssueToUserFacing(
+        sErr.issue,
+        sErr.paypalCode,
+        sErr.status,
+      );
+      log.error('paypal_capture_failed', sErr, {
+        orderId,
+        userFacingCode: userFacing.code,
+      });
       throw new functions.https.HttpsError(
         'internal',
-        sErr.message || 'PayPal capture failed',
+        userFacing.message,
+        { code: userFacing.code },
       );
     }
 
