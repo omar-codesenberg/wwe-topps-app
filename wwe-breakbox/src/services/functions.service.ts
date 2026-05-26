@@ -3,6 +3,37 @@ import { firebaseFunctions } from '../config/firebase';
 
 export const lockSlot = httpsCallable(firebaseFunctions, 'lockSlot');
 export const purchaseSlot = httpsCallable(firebaseFunctions, 'purchaseSlot');
+
+type ActiveLockSlot = {
+  id: string;
+  wrestlerName: string;
+  members: string[];
+  brand: string;
+  priceCents: number;
+  tier: string;
+  status: 'locked';
+  lockedBy: string;
+  lockedAt: string | null;
+  lockedUntil: string;
+  purchasedBy: null;
+  purchasedAt: null;
+  imageUrl: string | null;
+};
+
+export type GetMyActiveLockResponse =
+  | { active: false }
+  | {
+      active: true;
+      eventId: string;
+      slotId: string;
+      lockedUntil: string;
+      slot: ActiveLockSlot;
+    };
+
+export const getMyActiveLock = httpsCallable<undefined, GetMyActiveLockResponse>(
+  firebaseFunctions,
+  'getMyActiveLock'
+);
 export const releaseSlotOnCancel = httpsCallable<
   { eventId: string; slotId: string; orderId?: string },
   unknown

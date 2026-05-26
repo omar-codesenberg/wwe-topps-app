@@ -5,6 +5,7 @@ import 'dotenv/config';
 // functions.region('us-east1').runWith({...}).https.onCall(...)
 // or functions.region('us-east1').pubsub.schedule(...) in the individual files.
 export { lockSlot } from './lockSlot';
+export { getMyActiveLock } from './getMyActiveLock';
 export { purchaseSlot } from './purchaseSlot';
 export { releaseSlotOnCancel } from './releaseSlotOnCancel';
 export { releaseExpiredLocks } from './releaseExpiredLocks';

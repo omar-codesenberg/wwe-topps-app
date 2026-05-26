@@ -2,12 +2,14 @@ import React from 'react';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { useAuthStore } from '../store/authStore';
 import { useAuth } from '../hooks/useAuth';
+import { useActiveLockRecovery } from '../hooks/useActiveLockRecovery';
 import { AuthStack } from './AuthStack';
 import { MainTabs } from './MainTabs';
 import { theme } from '../constants/theme';
 
 export function RootNavigator() {
   useAuth();
+  useActiveLockRecovery();
   const { user, isLoading } = useAuthStore();
 
   if (isLoading) {
