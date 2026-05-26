@@ -11,6 +11,7 @@ import {
   Oswald_700Bold,
 } from '@expo-google-fonts/oswald';
 import { RootNavigator } from './src/navigation/RootNavigator';
+import { navigationRef } from './src/navigation/navigationRef';
 import { Toast } from './src/components/ui/Toast';
 
 const queryClient = new QueryClient();
@@ -33,7 +34,7 @@ export default function App() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
         <QueryClientProvider client={queryClient}>
-          <NavigationContainer>
+          <NavigationContainer ref={navigationRef}>
             <StatusBar style="light" />
             <RootNavigator />
             <Toast />

@@ -26,7 +26,17 @@ export const lockSlot = functions
         const slot = slotDoc.data()!;
         const event = eventDoc.data()!;
         if (event.status !== 'live') return { success: false, reason: 'EVENT_NOT_LIVE' };
-        if (slot.status === 'locked') return { success: false, reason: 'SLOT_LOCKED' };
+        if (slot.status === 'locked') {
+          // Re-lock by the same user on a non-expired lock is a no-op resume.
+          // The original lockedUntil is preserved so users cannot extend a
+          // reservation indefinitely by re-opening the app.
+          const existingLockedUntil = slot.lockedUntil?.toDate?.() ?? null;
+          const stillValid = existingLockedUntil && existingLockedUntil.getTime() > Date.now();
+          if (slot.lockedBy === uid && stillValid) {
+            return { success: true, lockedUntil: existingLockedUntil.toISOString() };
+          }
+          return { success: false, reason: 'SLOT_LOCKED' };
+        }
         if (slot.status === 'sold') return { success: false, reason: 'SLOT_SOLD' };
         if (slot.status === 'closed') return { success: false, reason: 'SLOT_CLOSED' };
         const lockedUntil = new Date(Date.now() + 5 * 60 * 1000);
