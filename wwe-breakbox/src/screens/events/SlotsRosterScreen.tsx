@@ -45,6 +45,7 @@ export function SlotsRosterScreen({ route, navigation }: Props) {
           data.reason === 'SLOT_SOLD' ? 'This slot has been claimed.' :
           data.reason === 'SLOT_CLOSED' ? 'This slot is closed.' :
           data.reason === 'EVENT_NOT_LIVE' ? 'This event is not live.' :
+          data.reason === 'ALREADY_HAS_ACTIVE_LOCK' ? 'You already have an active reservation. Finish checkout or release it first.' :
           'Could not reserve slot. Try again.';
         show(message, 'error');
         return;
