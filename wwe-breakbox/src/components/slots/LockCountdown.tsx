@@ -26,6 +26,13 @@ function getArcColor(seconds: number): string {
   return theme.colors.red;
 }
 
+function formatMinutes(secondsRemaining: number): string {
+  const safe = Math.max(0, secondsRemaining);
+  const minutes = Math.floor(safe / 60);
+  const seconds = safe % 60;
+  return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+}
+
 export function LockCountdown({ secondsRemaining }: LockCountdownProps) {
   const progress = useSharedValue(1);
   const color = getArcColor(secondsRemaining);
@@ -73,9 +80,9 @@ export function LockCountdown({ secondsRemaining }: LockCountdownProps) {
       </Svg>
       <View style={styles.center}>
         <Text style={[styles.seconds, { color }]}>
-          {Math.max(0, secondsRemaining)}
+          {formatMinutes(secondsRemaining)}
         </Text>
-        <Text style={styles.label}>SEC</Text>
+        <Text style={styles.label}>MIN</Text>
       </View>
     </View>
   );
