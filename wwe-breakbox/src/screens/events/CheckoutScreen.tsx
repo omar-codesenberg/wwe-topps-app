@@ -18,10 +18,7 @@ import { useAuthStore } from '../../store/authStore';
 import { useCheckoutStore } from '../../store/checkoutStore';
 import { useToastStore } from '../../store/toastStore';
 import { releaseSlotOnCancel } from '../../services/functions.service';
-import {
-  purchaseSlotViaPayPal,
-  cancelPurchaseFlow,
-} from '../../services/payments/paypal.service';
+import { purchaseSlotViaPayPal } from '../../services/payments/paypal.service';
 import { theme } from '../../constants/theme';
 
 type Props = NativeStackScreenProps<EventsStackParamList, 'Checkout'>;
@@ -87,13 +84,11 @@ export function CheckoutScreen({ route, navigation }: Props) {
 
       // success === false — handle each reason
       if (result.reason === 'CANCELLED') {
-        // User knowingly cancelled in PayPal — no toast.
-        // Best-effort cleanup of any open server-side state.
-        try {
-          await cancelPurchaseFlow({ eventId, slotId });
-        } catch {
-          // Cleanup is best-effort; lock will expire on its own.
-        }
+        // User dismissed the PayPal portal. Leave the slot lock and the open
+        // PayPal order intact so the user can click PayPal again and resume
+        // via the [S2] alreadyOpen path in createPayPalOrder. The lock keeps
+        // its existing countdown; explicit cancel (Cancel button / back nav)
+        // still releases via releaseSlot() in handleCancel / beforeRemove.
         return;
       }
 
