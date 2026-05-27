@@ -4,7 +4,6 @@ import {
   createPayPalOrder,
   capturePayPalOrder,
   getPayPalOrderStatus,
-  releaseSlotOnCancel,
 } from '../functions.service';
 
 export type PurchaseSlotResult =
@@ -168,25 +167,3 @@ export async function purchaseSlotViaPayPal(
   }
 }
 
-/**
- * Called when the user explicitly cancels in-app. Tells the server to release
- * the slot lock AND void the open PayPal order (so a stale deep-link return
- * cannot trigger capture on a now-freed slot). Per C5.
- *
- * Best-effort: errors are logged via console.warn and swallowed.
- */
-export async function cancelPurchaseFlow(input: {
-  eventId: string;
-  slotId: string;
-  orderId?: string;
-}): Promise<void> {
-  try {
-    await releaseSlotOnCancel({
-      eventId: input.eventId,
-      slotId: input.slotId,
-      orderId: input.orderId,
-    });
-  } catch (err) {
-    console.warn('[paypal.service] cancelPurchaseFlow failed:', err);
-  }
-}
