@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Animated, Text, StyleSheet, Pressable, View, AccessibilityInfo } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useToastStore } from '../../store/toastStore';
@@ -12,15 +12,32 @@ const AUTO_DISMISS_MS = 3000;
 
 export function Toast() {
   const { message, type, visible, hide } = useToastStore();
-  const translateY = useRef(new Animated.Value(-100)).current;
+  const translateY = useRef(new Animated.Value(-1000)).current;
   const insets = useSafeAreaInsets();
+  const [height, setHeight] = useState(0);
 
   const isError = type === 'error';
+
+  // Distance to translate the banner fully off the top of the screen. Its top
+  // edge sits at (insets.top + 8) and it's `height` tall, so it must travel at
+  // least that far up; the extra 24 clears the drop shadow. A fixed -100 left
+  // the bottom of the banner peeking on devices with tall safe-area insets
+  // (notch / Dynamic Island), where insets.top + 8 + height exceeds 100.
+  const hiddenY = -(insets.top + 8 + height + 24);
+  const hiddenYRef = useRef(hiddenY);
+  hiddenYRef.current = hiddenY;
+
+  // Park the banner fully off-screen whenever it isn't visible (including the
+  // initial mount, once the height is measured), so no sliver is left behind.
+  useEffect(() => {
+    if (!visible) translateY.setValue(hiddenY);
+  }, [visible, hiddenY, translateY]);
 
   useEffect(() => {
     if (!visible) return;
 
     // Slide-in animation runs for every toast.
+    translateY.setValue(hiddenYRef.current);
     Animated.spring(translateY, {
       toValue: 0,
       useNativeDriver: true,
@@ -38,7 +55,7 @@ export function Toast() {
     // Non-error toasts auto-dismiss after AUTO_DISMISS_MS.
     const timer = setTimeout(() => {
       Animated.timing(translateY, {
-        toValue: -100,
+        toValue: hiddenYRef.current,
         duration: 300,
         useNativeDriver: true,
       }).start(() => hide());
@@ -53,7 +70,7 @@ export function Toast() {
 
   const handleDismiss = (): void => {
     Animated.timing(translateY, {
-      toValue: -100,
+      toValue: hiddenYRef.current,
       duration: 200,
       useNativeDriver: true,
     }).start(() => hide());
@@ -68,6 +85,7 @@ export function Toast() {
 
   return (
     <Animated.View
+      onLayout={(e) => setHeight(e.nativeEvent.layout.height)}
       style={[
         styles.container,
         { top: insets.top + 8, backgroundColor: bgColor },
