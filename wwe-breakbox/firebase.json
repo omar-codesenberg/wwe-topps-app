@@ -14,7 +14,18 @@
       "target": "admin",
       "public": "admin-web/dist",
       "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
-      "rewrites": [{ "source": "**", "destination": "/index.html" }]
+      "rewrites": [{ "source": "**", "destination": "/index.html" }],
+      "headers": [
+        {
+          "source": "**",
+          "headers": [
+            {
+              "key": "X-Robots-Tag",
+              "value": "noindex, nofollow, noarchive, nosnippet"
+            }
+          ]
+        }
+      ]
     }
   ],
   "emulators": {
