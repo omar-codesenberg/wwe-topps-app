@@ -1,0 +1,132 @@
+<!doctype html><html><head><meta charset="utf-8">
+<link rel="stylesheet" href="_shared.css">
+<style>
+  /* dark steel grunge background (BREAK ZONE inspired, themed dark) */
+  .screen{background:
+    repeating-linear-gradient(115deg, rgba(255,255,255,.022) 0 2px, transparent 2px 8px),
+    repeating-linear-gradient(200deg, rgba(0,0,0,.18) 0 3px, transparent 3px 11px),
+    radial-gradient(120% 55% at 50% -8%, #1b2b52 0%, #0c1326 38%, #0a0b0f 72%, #070809 100%),
+    #070809;}
+  .grime{position:absolute;inset:0;pointer-events:none;
+    background:radial-gradient(120% 80% at 50% 18%, transparent 55%, rgba(0,0,0,.55) 100%)}
+
+  /* torn metal frame bands (top + bottom) */
+  .metal{position:absolute;left:0;right:0;height:52px;
+    background:
+      repeating-linear-gradient(95deg, rgba(255,255,255,.18) 0 1px, transparent 1px 6px),
+      linear-gradient(180deg,#d2d7dc 0%,#a7adb4 42%,#6f747b 72%,#41454b 100%);
+    box-shadow:0 0 14px rgba(0,0,0,.5)}
+  .metal.top{top:0;clip-path:polygon(0 0,100% 0,100% 64%,96% 52%,92% 78%,88% 50%,84% 80%,80% 58%,76% 84%,72% 52%,68% 80%,64% 56%,60% 86%,56% 54%,52% 80%,48% 52%,44% 84%,40% 56%,36% 80%,32% 50%,28% 86%,24% 56%,20% 80%,16% 52%,12% 84%,8% 58%,4% 78%,0 56%)}
+  .metal.bot{bottom:0;transform:scaleY(-1);clip-path:polygon(0 0,100% 0,100% 64%,96% 52%,92% 78%,88% 50%,84% 80%,80% 58%,76% 84%,72% 52%,68% 80%,64% 56%,60% 86%,56% 54%,52% 80%,48% 52%,44% 84%,40% 56%,36% 80%,32% 50%,28% 86%,24% 56%,20% 80%,16% 52%,12% 84%,8% 58%,4% 78%,0 56%)}
+  .metal.l,.metal.r{top:52px;bottom:52px;height:auto;width:16px;opacity:.8;
+    background:linear-gradient(90deg,#c2c7cd,#777d84 60%,#3f4348)}
+  .metal.l{left:0;clip-path:polygon(0 0,100% 0,60% 6%,100% 12%,55% 19%,100% 26%,62% 33%,100% 40%,55% 47%,100% 54%,60% 61%,100% 68%,55% 75%,100% 82%,60% 90%,100% 96%,0 100%)}
+  .metal.r{right:0;transform:scaleX(-1);clip-path:polygon(0 0,100% 0,60% 6%,100% 12%,55% 19%,100% 26%,62% 33%,100% 40%,55% 47%,100% 54%,60% 61%,100% 68%,55% 75%,100% 82%,60% 90%,100% 96%,0 100%)}
+
+  /* ===== BREAK ZONE masthead ===== */
+  .mast{position:relative;text-align:center;padding-top:8px}
+  .emblem{display:inline-block;position:relative;width:138px;height:58px;border-radius:9px;
+    border:3px solid #efcf78;
+    background:
+      linear-gradient(335deg,rgba(0,0,0,.18) 9px,transparent 9px) 0 1px/24px 24px,
+      linear-gradient(155deg,rgba(0,0,0,.18) 9px,transparent 9px) 2px 14px/24px 24px,
+      linear-gradient(180deg,#7c0d0a 0%,#c5390f 52%,#ff8a1e 100%);
+    box-shadow:0 0 0 2px #6e521c,0 6px 16px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.3);}
+  .emblem .wcc{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+    font-family:'Anton';font-size:31px;letter-spacing:1px;
+    background:linear-gradient(180deg,#fff,#dfe3e8 40%,#8d939b 54%,#eef1f4);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+    filter:drop-shadow(0 1px 1px rgba(0,0,0,.6))}
+
+  .break{font-family:'Anton';font-size:80px;line-height:.74;letter-spacing:1px;margin-top:8px;color:#d11b16;
+    text-shadow:0 2px 0 #7c0c0a,0 3px 0 #470606,0 7px 14px rgba(0,0,0,.6);-webkit-text-stroke:1px #3a0505;
+    -webkit-mask-image:repeating-linear-gradient(4deg,#000 0 9px,rgba(0,0,0,.78) 9px 11px),
+      repeating-linear-gradient(-87deg,#000 0 14px,rgba(0,0,0,.7) 14px 16px);
+    -webkit-mask-composite:source-over}
+  .zone{font-family:'Anton';font-size:62px;line-height:.78;margin-top:-2px;color:transparent;
+    -webkit-text-stroke:2px #c9ced3;
+    text-shadow:0 2px 8px rgba(0,0,0,.55)}
+
+  /* ===== home UI ===== */
+  .body{position:relative;padding:14px 22px 0}
+  .eventTitle{font-family:'Anton';text-align:center;font-size:26px;line-height:1;margin-top:6px;color:#fff;
+    text-shadow:0 2px 6px rgba(0,0,0,.7)}
+  .eventSub{text-align:center;color:var(--txt-dim);font-size:12px;letter-spacing:3px;margin-top:6px}
+
+  .liveRow{display:flex;justify-content:center;align-items:center;gap:8px;margin-top:12px}
+  .liveDot{width:9px;height:9px;border-radius:50%;background:var(--wcc-red);box-shadow:0 0 8px 2px var(--wcc-red)}
+  .liveBadge{font-family:'Anton';color:var(--wcc-red);letter-spacing:3px;font-size:15px}
+  .countdown{color:#fff;font-family:'Anton';font-size:15px;letter-spacing:2px;
+    border:1px solid #5b5f66;border-radius:6px;padding:3px 10px;background:rgba(255,255,255,.05)}
+
+  .progressWrap{margin:14px 4px 0}
+  .progressLabel{display:flex;justify-content:space-between;font-size:11px;letter-spacing:2px;color:#cfd3d8;font-weight:700;margin-bottom:7px}
+  .bar{height:12px;border-radius:7px;background:#14161a;border:1px solid #34373c;overflow:hidden;box-shadow:inset 0 1px 3px rgba(0,0,0,.7)}
+  .fill{height:100%;width:68%;border-radius:7px;background:linear-gradient(90deg,var(--nitro-2),var(--wcc-red));box-shadow:0 0 12px rgba(255,80,0,.6)}
+
+  .ctaWrap{margin:18px 4px 0}
+  .ledtop{margin-bottom:10px}
+  .footHint{text-align:center;color:var(--txt-dim);font-size:11px;letter-spacing:2px;margin-top:10px}
+
+  .upNext{margin:18px 4px 0}
+  .upNextLabel{font-family:'Anton';font-size:14px;letter-spacing:3px;color:#cfd3d8;margin-bottom:9px}
+  .upNextLabel span{color:var(--led-cyan)}
+  .ev{display:flex;align-items:center;gap:13px;padding:11px 13px;border-radius:12px;
+    background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02));border:1px solid #34373c;margin-bottom:9px}
+  .ev .thumb{width:48px;height:48px;border-radius:8px;flex:none;display:flex;align-items:center;justify-content:center;border:1px solid #5b5f66}
+  .ev .thumb .wcc{font-size:14px}
+  .ev .meta{flex:1}
+  .ev .meta .t{font-family:'Anton';font-size:16px;color:#fff;letter-spacing:.5px}
+  .ev .meta .s{font-size:11px;color:var(--txt-dim);letter-spacing:1px;margin-top:2px}
+  .ev .when{font-family:'Anton';font-size:12px;color:var(--nitro-1);text-align:right;line-height:1.2}
+</style></head>
+<body>
+<div class="screen">
+  <div class="flame" style="bottom:46px;opacity:.5"></div>
+
+  <div class="statusbar"><span>9:41</span><div class="dots">NITRO LIVE ▮▮▮ ▶</div></div>
+
+  <div class="mast">
+    <div class="emblem"><div class="wcc">WCC</div></div>
+    <div class="break">BREAK</div>
+    <div class="zone">ZONE</div>
+  </div>
+
+  <div class="body">
+    <div class="eventTitle">RAW BREAK · CHROME EDITION</div>
+    <div class="eventSub">SERIES 4 · HOBBY BOX · 30 SLOTS</div>
+
+    <div class="liveRow">
+      <div class="liveDot"></div><span class="liveBadge">LIVE</span>
+      <span class="countdown">12:48 LEFT</span>
+    </div>
+
+    <div class="progressWrap">
+      <div class="progressLabel"><span>20 / 30 SLOTS CLAIMED</span><span>10 LEFT</span></div>
+      <div class="bar"><div class="fill"></div></div>
+    </div>
+
+    <div class="ctaWrap">
+      <div class="led ledtop"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+      <button class="cta">ENTER THE ARENA</button>
+      <div class="footHint">TAP TO HIT THE ENTRANCE RAMP</div>
+    </div>
+
+    <div class="upNext">
+      <div class="upNextLabel">UP <span>NEXT</span></div>
+      <div class="ev">
+        <div class="thumb plate"><span class="wcc" style="font-family:'Anton';color:var(--wcc-red);-webkit-text-stroke:.5px #2a0402">WCC</span></div>
+        <div class="meta"><div class="t">SMACKDOWN PRIZM</div><div class="s">SERIES 5 · 24 SLOTS</div></div>
+        <div class="when">TONIGHT<br>8:00 PM</div>
+      </div>
+      <div class="ev">
+        <div class="thumb plate"><span class="wcc" style="font-family:'Anton';color:var(--wcc-red);-webkit-text-stroke:.5px #2a0402">WCC</span></div>
+        <div class="meta"><div class="t">PPV MEGA BREAK</div><div class="s">CASE · 50 SLOTS</div></div>
+        <div class="when">SAT<br>7:00 PM</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grime"></div>
+</div>
+</body></html>
