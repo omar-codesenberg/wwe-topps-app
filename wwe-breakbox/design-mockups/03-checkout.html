@@ -1,0 +1,76 @@
+<!doctype html><html><head><meta charset="utf-8">
+<link rel="stylesheet" href="_shared.css">
+<style>
+  .topbar{display:flex;align-items:center;gap:12px;padding:8px 18px 0}
+  .back{font-family:'Anton';font-size:22px;color:#cfd3d8}
+  .topTitle .a{font-family:'Anton';font-size:20px;color:#fff;letter-spacing:.5px}
+
+  .hero{margin:16px 18px 0;border-radius:16px;overflow:hidden;position:relative;
+    border:1px solid #5b5f66;box-shadow:0 8px 24px rgba(0,0,0,.5)}
+  .hero .ledtop,.hero .ledbot{padding:8px 14px}
+  .hero .body{padding:8px 18px 20px;text-align:center;position:relative}
+  .hero .reserved{font-family:'Oswald';font-weight:700;font-size:11px;letter-spacing:3px;color:var(--led-cyan)}
+  .hero .name{font-family:'Anton';font-size:38px;color:#fff;line-height:.95;margin-top:6px;
+    text-shadow:0 2px 10px rgba(0,0,0,.6)}
+  .hero .members{font-size:13px;color:var(--txt-dim);letter-spacing:1.5px;margin-top:8px}
+  .hero .slotno{position:absolute;top:8px;right:16px;font-family:'Anton';font-size:18px;color:#5b5f66}
+
+  .timer{margin:16px 18px 0;display:flex;align-items:center;justify-content:center;gap:10px;
+    background:rgba(255,210,63,.08);border:1px solid rgba(255,210,63,.35);border-radius:12px;padding:12px}
+  .timer .lbl{font-family:'Oswald';font-weight:700;letter-spacing:2px;font-size:12px;color:#ffd23f}
+  .timer .clk{font-family:'Anton';font-size:26px;color:#ffd23f;letter-spacing:2px}
+
+  .summary{margin:16px 18px 0;border-radius:14px;border:1px solid #34373c;overflow:hidden;
+    background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02))}
+  .sumHead{font-family:'Anton';font-size:14px;letter-spacing:2px;color:#cfd3d8;padding:13px 16px;border-bottom:1px solid #34373c}
+  .row{display:flex;justify-content:space-between;padding:11px 16px;font-size:14px;color:#d7dbe0;letter-spacing:.5px}
+  .row .v{font-family:'Oswald';font-weight:600;color:#fff}
+  .row.total{border-top:1px solid #34373c;padding:14px 16px}
+  .row.total .k{font-family:'Anton';font-size:17px;letter-spacing:1px;color:#fff}
+  .row.total .v{font-family:'Anton';font-size:24px;color:var(--nitro-1)}
+
+  .pay{margin:18px 18px 0}
+  .securedNote{text-align:center;color:var(--txt-dim);font-size:11px;letter-spacing:1.5px;margin-top:12px}
+  .securedNote b{color:#9affc4}
+</style></head>
+<body>
+<div class="screen">
+  <div class="flame" style="bottom:-50px"></div>
+  <div class="statusbar"><span>9:41</span><div class="dots">NITRO LIVE ▮▮▮ ▶</div></div>
+
+  <div class="topbar">
+    <div class="back">‹</div>
+    <div class="topTitle"><div class="a">CHECKOUT</div></div>
+  </div>
+
+  <!-- Reserved slot hero, framed like the Nitro entrance marquee -->
+  <div class="hero plate">
+    <div class="ledtop"><div class="led"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
+    <div class="body">
+      <div class="slotno">#02</div>
+      <div class="reserved">★ SLOT RESERVED FOR YOU ★</div>
+      <div class="name">CODY<br>RHODES</div>
+      <div class="members">SMACKDOWN · SINGLES · CHROME EDITION</div>
+    </div>
+    <div class="ledbot"><div class="led"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
+  </div>
+
+  <div class="timer">
+    <span class="lbl">HOLD EXPIRES IN</span>
+    <span class="clk">2:41</span>
+  </div>
+
+  <div class="summary">
+    <div class="sumHead">ORDER SUMMARY</div>
+    <div class="row"><span class="k">Slot · Cody Rhodes</span><span class="v">$40.00</span></div>
+    <div class="row"><span class="k">Break fee</span><span class="v">$3.50</span></div>
+    <div class="row"><span class="k">Shipping (cards)</span><span class="v">$4.99</span></div>
+    <div class="row total"><span class="k">TOTAL</span><span class="v">$48.49</span></div>
+  </div>
+
+  <div class="pay">
+    <button class="cta">LOCK IT IN · PAY $48.49</button>
+    <div class="securedNote">SECURED CHECKOUT · <b>PAYPAL</b> &amp; CARD ACCEPTED</div>
+  </div>
+</div>
+</body></html>

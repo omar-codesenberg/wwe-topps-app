@@ -1,0 +1,181 @@
+<!doctype html><html><head><meta charset="utf-8">
+<link rel="stylesheet" href="_shared.css">
+<style>
+  .screen{background:#050608}
+
+  /* ===== STAGE SCENE (background) ===== */
+  .stage{position:absolute;inset:0;overflow:hidden}
+
+  /* arena dome ceiling */
+  .dome{position:absolute;top:0;left:-12%;right:-12%;height:250px;
+    background:
+      repeating-conic-gradient(from 270deg at 50% 135%,
+        rgba(255,255,255,.05) 0 1deg, transparent 1deg 7deg),
+      radial-gradient(130% 150% at 50% 135%, #2b3c66 0%, #18244a 30%, #0b1124 55%, #060912 78%);}
+  .domeRim{position:absolute;top:188px;left:-12%;right:-12%;height:70px;
+    background:radial-gradient(120% 120% at 50% 0%, rgba(60,90,160,.35), transparent 60%)}
+
+  /* crowd band behind the panels */
+  .crowd{position:absolute;top:150px;left:0;right:0;height:240px;opacity:.85;
+    background:
+     radial-gradient(2px 2px at 18px 30px,#ff6a4a,transparent),
+     radial-gradient(2px 2px at 55px 70px,#5b86ff,transparent),
+     radial-gradient(2px 2px at 95px 44px,#ffd23f,transparent),
+     radial-gradient(2px 2px at 140px 86px,#ff4fd8,transparent),
+     radial-gradient(2px 2px at 185px 54px,#46e0ff,transparent),
+     radial-gradient(2px 2px at 230px 92px,#ff6a4a,transparent),
+     radial-gradient(2px 2px at 275px 38px,#5b86ff,transparent),
+     radial-gradient(2px 2px at 320px 78px,#ffd23f,transparent),
+     radial-gradient(2px 2px at 360px 50px,#ff4fd8,transparent),
+     radial-gradient(2px 2px at 400px 88px,#46e0ff,transparent),
+     linear-gradient(180deg, rgba(120,40,40,.25), transparent 70%);
+    background-size:150px 110px,150px 110px,150px 110px,150px 110px,150px 110px,150px 110px,150px 110px,150px 110px,150px 110px,150px 110px,100% 100%;
+    filter:blur(.5px)}
+  .crowd:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent,rgba(5,6,8,.6) 80%)}
+
+  /* diamond-plate WCC panels (left & right) */
+  .panel{position:absolute;top:148px;width:148px;height:300px;border-radius:4px;
+    border:1px solid #5b5f66;box-shadow:0 10px 26px rgba(0,0,0,.55);padding:20px 0 0 16px}
+  .panel.l{left:6px}.panel.r{right:6px}
+  /* finer tread-plate texture for the big panels */
+  .panel.plate{background-color:#34373c;background-image:
+      linear-gradient(335deg,#22252a 10px,transparent 10px),
+      linear-gradient(155deg,#22252a 10px,transparent 10px),
+      linear-gradient(335deg,#22252a 10px,transparent 10px),
+      linear-gradient(155deg,#22252a 10px,transparent 10px);
+    background-size:26px 26px;background-position:0 1px,2px 16px,13px 14px,15px 3px}
+  .panel .wcc{font-family:'Anton';color:var(--wcc-red);font-size:46px;line-height:.8;
+    text-shadow:0 2px 0 var(--wcc-red-dk),0 3px 0 #5e0805,0 5px 9px rgba(0,0,0,.6);-webkit-text-stroke:1px #2a0402}
+  .panel .monday{font-family:'Anton';font-size:13px;letter-spacing:5px;color:#e7eaee;margin:7px 0 1px}
+  .panel .nitro{font-family:'Anton';font-size:34px;line-height:.85;
+    background:linear-gradient(180deg,#ffd23f 0%,#ff7a18 55%,#ff3d00 100%);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+    filter:drop-shadow(0 0 8px rgba(255,90,0,.5))}
+  /* flames along the base of each panel */
+  .pflame{position:absolute;top:392px;width:160px;height:90px;
+    background:
+      radial-gradient(50% 80% at 25% 100%, rgba(255,120,0,.85), transparent 70%),
+      radial-gradient(50% 95% at 50% 100%, rgba(255,60,0,.9), transparent 72%),
+      radial-gradient(50% 78% at 78% 100%, rgba(255,160,0,.8), transparent 70%);
+    filter:blur(2px)}
+  .pflame.l{left:0}.pflame.r{right:0}
+
+  /* central truss entrance gate */
+  .truss-lat{background:
+      repeating-linear-gradient(45deg,#c3c8cf 0 2px,transparent 2px 9px),
+      repeating-linear-gradient(-45deg,#c3c8cf 0 2px,transparent 2px 9px),
+      linear-gradient(#20242a,#15181d);
+    border:1px solid #3a3d42}
+  .gate{position:absolute;top:238px;left:50%;transform:translateX(-50%);width:140px;height:212px}
+  .gate .post{position:absolute;top:0;bottom:0;width:20px;border-radius:2px}
+  .gate .post.l{left:6px}.gate .post.r{right:6px}
+  .gate .top{position:absolute;top:0;left:14px;right:14px;height:18px;border-radius:2px}
+  /* LED ropes lining the inner opening */
+  .gate .rope{position:absolute;top:18px;bottom:24px;width:6px;display:flex;flex-direction:column;justify-content:space-between;align-items:center}
+  .gate .rope.l{left:30px}.gate .rope.r{right:30px}
+  .gate .rope i{width:6px;height:6px;border-radius:50%}
+  /* podium marquee in the entrance mouth */
+  .gate .podium{position:absolute;left:42px;right:42px;bottom:6px;top:74px;border-radius:4px;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    background:linear-gradient(180deg,#2a2d33,#16181d);border:1px solid #6a6e75;
+    box-shadow:0 0 18px rgba(120,150,255,.25)}
+  .gate .podium .wcc{font-family:'Anton';color:var(--wcc-red);font-size:15px;line-height:.9;-webkit-text-stroke:.5px #2a0402}
+  .gate .podium .monday{font-family:'Anton';font-size:6px;letter-spacing:2px;color:#cfd3d8}
+  .gate .podium .nitro{font-family:'Anton';font-size:12px;line-height:.9;
+    background:linear-gradient(180deg,#ffd23f,#ff5a00);-webkit-background-clip:text;color:transparent}
+  /* small lighting trusses with white pods, above the gate */
+  .rig{position:absolute;top:210px;width:52px;height:15px;display:flex;justify-content:space-between;align-items:center;padding:0 4px;border-radius:3px}
+  .rig.l{left:152px;transform:rotate(8deg)}.rig.r{right:152px;transform:rotate(-8deg)}
+  .rig b{width:8px;height:8px;border-radius:50%;background:#eaf2ff;box-shadow:0 0 9px 3px rgba(190,215,255,.9)}
+
+  /* chrome WCC block letters on pedestals (foreground L/R) */
+  .ped{position:absolute;top:392px;width:120px;height:78px}
+  .ped.l{left:-6px;transform:perspective(300px) rotateY(20deg)}
+  .ped.r{right:-6px;transform:perspective(300px) rotateY(-20deg)}
+  .ped .block{position:absolute;bottom:0;left:8px;right:8px;height:30px;border-radius:3px;
+    background:linear-gradient(180deg,#23262b,#101216);border:1px solid #2a2c30;box-shadow:0 6px 12px rgba(0,0,0,.6)}
+  .ped .chrome{position:absolute;bottom:22px;left:0;right:0;text-align:center;font-size:46px;line-height:1}
+
+  /* entrance ramp with metal grating */
+  .ramp{position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:150px;height:120px;
+    clip-path:polygon(34% 0,66% 0,100% 100%,0 100%);
+    background:
+      repeating-linear-gradient(0deg, rgba(180,186,194,.35) 0 1px, transparent 1px 9px),
+      repeating-linear-gradient(90deg, rgba(180,186,194,.35) 0 1px, transparent 1px 9px),
+      linear-gradient(180deg,#3a3d42,#1c1f24);
+    border-top:2px solid #6a6e75;opacity:.85}
+  .stageFloor{position:absolute;bottom:0;left:0;right:0;height:120px;
+    background:radial-gradient(80% 100% at 50% 100%, rgba(120,150,255,.12), transparent 70%)}
+
+  /* darken scrim so foreground UI reads */
+  .scrim{position:absolute;inset:0;background:linear-gradient(180deg,
+    rgba(5,6,8,.15) 0%, rgba(5,6,8,.1) 42%, rgba(5,6,8,.72) 64%, #050608 88%)}
+
+  /* ===== FOREGROUND UI ===== */
+  .fg{position:absolute;left:0;right:0;bottom:0;padding:0 28px 56px;text-align:center}
+  .fg .breakbox{font-family:'Anton';font-size:40px;letter-spacing:5px;color:#fff;
+    text-shadow:0 2px 12px rgba(0,0,0,.7)}
+  .fg .breakbox .x{color:var(--wcc-red)}
+  .fg .tag{font-family:'Oswald';font-weight:600;font-size:13px;letter-spacing:4px;color:#cfd3d8;margin:8px 0 20px}
+  .fg .led{margin-bottom:16px}
+  .ghost{display:block;width:100%;text-align:center;margin-top:13px;
+    font-family:'Anton';font-size:17px;letter-spacing:2px;color:#cfd3d8;
+    padding:14px 0;border-radius:10px;background:rgba(255,255,255,.06);border:1px solid #5b5f66}
+  .legal{color:var(--txt-dim);font-size:10px;letter-spacing:1.5px;margin-top:16px}
+</style></head>
+<body>
+<div class="screen">
+  <div class="stage">
+    <div class="dome"></div>
+    <div class="domeRim"></div>
+    <div class="crowd"></div>
+
+    <!-- side panels -->
+    <div class="panel l plate"><div class="wcc">WCC</div><div class="monday">MONDAY</div><div class="nitro">NITRO</div></div>
+    <div class="panel r plate"><div class="wcc">WCC</div><div class="monday">MONDAY</div><div class="nitro">NITRO</div></div>
+    <div class="pflame l"></div>
+    <div class="pflame r"></div>
+
+    <!-- overhead light rigs -->
+    <div class="rig l truss-lat"><b></b><b></b><b></b><b></b></div>
+    <div class="rig r truss-lat"><b></b><b></b><b></b><b></b></div>
+
+    <!-- entrance gate -->
+    <div class="gate">
+      <div class="post l truss-lat"></div>
+      <div class="post r truss-lat"></div>
+      <div class="top truss-lat"></div>
+      <div class="rope l">
+        <i style="background:#ff4fd8;box-shadow:0 0 7px #ff4fd8"></i><i style="background:#46e0ff;box-shadow:0 0 7px #46e0ff"></i>
+        <i style="background:#5b86ff;box-shadow:0 0 7px #5b86ff"></i><i style="background:#ff4fd8;box-shadow:0 0 7px #ff4fd8"></i>
+        <i style="background:#46e0ff;box-shadow:0 0 7px #46e0ff"></i><i style="background:#ff4fd8;box-shadow:0 0 7px #ff4fd8"></i>
+      </div>
+      <div class="rope r">
+        <i style="background:#46e0ff;box-shadow:0 0 7px #46e0ff"></i><i style="background:#ff4fd8;box-shadow:0 0 7px #ff4fd8"></i>
+        <i style="background:#5b86ff;box-shadow:0 0 7px #5b86ff"></i><i style="background:#46e0ff;box-shadow:0 0 7px #46e0ff"></i>
+        <i style="background:#ff4fd8;box-shadow:0 0 7px #ff4fd8"></i><i style="background:#46e0ff;box-shadow:0 0 7px #46e0ff"></i>
+      </div>
+      <div class="podium"><div class="wcc">WCC</div><div class="monday">MONDAY</div><div class="nitro">NITRO</div></div>
+    </div>
+
+    <!-- chrome pedestal letters -->
+    <div class="ped l"><div class="block"></div><div class="chrome">WCC</div></div>
+    <div class="ped r"><div class="block"></div><div class="chrome">WCC</div></div>
+
+    <div class="stageFloor"></div>
+    <div class="ramp"></div>
+  </div>
+
+  <div class="scrim"></div>
+
+  <!-- foreground sign-in UI -->
+  <div class="fg">
+    <div class="breakbox">BREAK<span class="x">BOX</span></div>
+    <div class="tag">LIVE WWE CARD BREAKS · CLAIM YOUR SLOT</div>
+    <div class="led"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+    <button class="cta">GET IN THE RING</button>
+    <a class="ghost">I ALREADY HAVE AN ACCOUNT</a>
+    <div class="legal">21+ · NOT AFFILIATED WITH WWE · DEMO CONCEPT</div>
+  </div>
+</div>
+</body></html>
