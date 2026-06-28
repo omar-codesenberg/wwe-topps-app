@@ -113,10 +113,11 @@
 
   /* ===== FOREGROUND UI ===== */
   .fg{position:absolute;left:0;right:0;bottom:0;padding:0 28px 56px;text-align:center}
-  .fg .breakbox{font-family:'Anton';font-size:40px;letter-spacing:5px;color:#fff;
+  .fg .appWord{font-family:'Anton';font-size:31px;line-height:.95;letter-spacing:2px;color:#fff;
     text-shadow:0 2px 12px rgba(0,0,0,.7)}
-  .fg .breakbox .x{color:var(--wcc-red)}
-  .fg .tag{font-family:'Oswald';font-weight:600;font-size:13px;letter-spacing:4px;color:#cfd3d8;margin:8px 0 20px}
+  .fg .appWord .amp{color:#e7c463}
+  .fg .appAbbr{font-family:'Oswald';font-weight:700;font-size:12px;letter-spacing:7px;color:var(--wcc-red);text-indent:7px;margin-bottom:4px}
+  .fg .tag{font-family:'Oswald';font-weight:600;font-size:13px;letter-spacing:4px;color:#cfd3d8;margin:10px 0 20px}
   .fg .led{margin-bottom:16px}
   .ghost{display:block;width:100%;text-align:center;margin-top:13px;
     font-family:'Anton';font-size:17px;letter-spacing:2px;color:#cfd3d8;
@@ -170,7 +171,8 @@
 
   <!-- foreground sign-in UI -->
   <div class="fg">
-    <div class="breakbox">BREAK<span class="x">BOX</span></div>
+    <div class="appAbbr">W · C · C</div>
+    <div class="appWord">WRESTLING CARDS<br><span class="amp">&amp;</span> COLLECTIBLES</div>
     <div class="tag">LIVE WWE CARD BREAKS · CLAIM YOUR SLOT</div>
     <div class="led"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
     <button class="cta">GET IN THE RING</button>
