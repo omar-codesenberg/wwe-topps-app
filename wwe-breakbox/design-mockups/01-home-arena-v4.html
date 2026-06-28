@@ -1,37 +1,52 @@
 <!doctype html><html><head><meta charset="utf-8">
 <link rel="stylesheet" href="_shared.css">
 <style>
-  /* dark steel grunge field behind the transparent SVG */
+  @import url('https://fonts.googleapis.com/css2?family=Ewert&display=swap');
+  /* dark steel grunge field behind the artwork */
   .screen{background:
     repeating-linear-gradient(115deg, rgba(255,255,255,.022) 0 2px, transparent 2px 8px),
     repeating-linear-gradient(200deg, rgba(0,0,0,.18) 0 3px, transparent 3px 11px),
     radial-gradient(120% 55% at 50% -8%, #1b2b52 0%, #0c1326 38%, #0a0b0f 72%, #070809 100%),
     #070809;}
 
-  /* the WCC BREAK ZONE artwork as a transparent SVG background layer */
-  .artwork{position:absolute;inset:0;width:430px;height:932px;z-index:1;pointer-events:none}
-  /* soft glow under the logo to seat it on the dark field */
-  .logoGlow{position:absolute;top:30px;left:50%;transform:translateX(-50%);width:340px;height:260px;z-index:0;
-    background:radial-gradient(60% 60% at 50% 40%, rgba(255,90,30,.16), transparent 70%)}
-
-  /* ===== home UI overlaid below the artwork masthead ===== */
-  .body{position:relative;z-index:3;padding:0 34px;margin-top:312px}
-  .appName{text-align:center;font-family:'Oswald',sans-serif;font-weight:600;font-size:12px;letter-spacing:3.5px;color:#d2d7dc;margin-bottom:14px}
+  /* exact WCC BREAK ZONE png, placed as the masthead */
+  .masthead{position:relative;z-index:3;text-align:center;margin-top:6px}
+  .masthead img{display:inline-block;width:420px;max-width:100%;height:auto;
+    filter:drop-shadow(0 8px 18px rgba(0,0,0,.6))}
+  .appName{text-align:center;font-family:'Oswald',sans-serif;font-weight:600;font-size:12px;letter-spacing:3.5px;color:#d2d7dc;margin-top:6px}
   .appName b{color:#e7c463;font-weight:700}
+  /* v4: new WCC emblem overlay — WCC set in the distressed BREAK ZONE-style font,
+     sized to fully cover the gold-blocky WCC baked into the PNG */
+  .wccOverlay{position:absolute;top:7px;left:52%;transform:translateX(-50%);z-index:5;
+    width:139px;height:54px;border-radius:9px;border:3px solid #efcf78;
+    display:flex;align-items:center;justify-content:center;
+    background:
+      linear-gradient(335deg,rgba(0,0,0,.18) 9px,transparent 9px) 0 1px/24px 24px,
+      linear-gradient(155deg,rgba(0,0,0,.18) 9px,transparent 9px) 2px 14px/24px 24px,
+      linear-gradient(180deg,#7c0d0a 0%,#c5390f 52%,#ff8a1e 100%);
+    box-shadow:0 0 0 2px #6e521c,0 6px 16px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.3)}
+  .wccOverlay .wcc{font-family:'Ewert',serif;font-size:30px;letter-spacing:3px;color:#f6efdd;
+    filter:drop-shadow(0 0 1px rgba(0,0,0,.85)) drop-shadow(0 1px 1px rgba(0,0,0,.7))}
+  /* warm glow seating the logo on the dark field */
+  .logoGlow{position:absolute;top:30px;left:50%;transform:translateX(-50%);width:360px;height:250px;z-index:1;
+    background:radial-gradient(60% 60% at 50% 42%, rgba(255,90,30,.16), transparent 70%)}
+
+  /* ===== home UI ===== */
+  .body{position:relative;z-index:3;padding:8px 28px 0}
   .eventTitle{font-family:'Anton';text-align:center;font-size:26px;line-height:1;color:#fff;text-shadow:0 2px 6px rgba(0,0,0,.7)}
   .eventSub{text-align:center;color:var(--txt-dim);font-size:12px;letter-spacing:3px;margin-top:6px}
   .liveRow{display:flex;justify-content:center;align-items:center;gap:8px;margin-top:12px}
   .liveDot{width:9px;height:9px;border-radius:50%;background:var(--wcc-red);box-shadow:0 0 8px 2px var(--wcc-red)}
   .liveBadge{font-family:'Anton';color:var(--wcc-red);letter-spacing:3px;font-size:15px}
   .countdown{color:#fff;font-family:'Anton';font-size:15px;letter-spacing:2px;border:1px solid #5b5f66;border-radius:6px;padding:3px 10px;background:rgba(255,255,255,.05)}
-  .progressWrap{margin:14px 0 0}
+  .progressWrap{margin:14px 4px 0}
   .progressLabel{display:flex;justify-content:space-between;font-size:11px;letter-spacing:2px;color:#cfd3d8;font-weight:700;margin-bottom:7px}
   .bar{height:12px;border-radius:7px;background:#14161a;border:1px solid #34373c;overflow:hidden;box-shadow:inset 0 1px 3px rgba(0,0,0,.7)}
   .fill{height:100%;width:68%;border-radius:7px;background:linear-gradient(90deg,var(--nitro-2),var(--wcc-red));box-shadow:0 0 12px rgba(255,80,0,.6)}
-  .ctaWrap{margin:18px 0 0}
+  .ctaWrap{margin:18px 4px 0}
   .ledtop{margin-bottom:10px}
   .footHint{text-align:center;color:var(--txt-dim);font-size:11px;letter-spacing:2px;margin-top:10px}
-  .upNext{margin:18px 0 0}
+  .upNext{margin:18px 4px 0}
   .upNextLabel{font-family:'Anton';font-size:14px;letter-spacing:3px;color:#cfd3d8;margin-bottom:9px}
   .upNextLabel span{color:var(--led-cyan)}
   .ev{display:flex;align-items:center;gap:13px;padding:11px 13px;border-radius:12px;background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02));border:1px solid #34373c;margin-bottom:9px}
@@ -45,13 +60,17 @@
 <body>
 <div class="screen">
   <div class="logoGlow"></div>
-  <img class="artwork" src="break-zone.svg" alt="WCC Break Zone">
   <div class="flame" style="bottom:18px;opacity:.4;z-index:2"></div>
 
   <div class="statusbar" style="position:relative;z-index:3"><span>9:41</span><div class="dots">NITRO LIVE ▮▮▮ ▶</div></div>
 
-  <div class="body">
+  <!-- EXACT attached artwork goes here -->
+  <div class="masthead"><img src="break-zone-v4.png" alt="WCC Break Zone">
+    <div class="wccOverlay"><span class="wcc">WCC</span></div>
     <div class="appName">WRESTLING CARDS <b>&amp;</b> COLLECTIBLES</div>
+  </div>
+
+  <div class="body">
     <div class="eventTitle">RAW BREAK · CHROME EDITION</div>
     <div class="eventSub">SERIES 4 · HOBBY BOX · 30 SLOTS</div>
     <div class="liveRow"><div class="liveDot"></div><span class="liveBadge">LIVE</span><span class="countdown">12:48 LEFT</span></div>

@@ -1,7 +1,9 @@
 <!doctype html><html><head><meta charset="utf-8">
 <link rel="stylesheet" href="_shared.css">
 <style>
-  .topbar{display:flex;align-items:center;gap:12px;padding:8px 18px 0}
+  .brandStrip{text-align:center;font-family:'Oswald',sans-serif;font-weight:600;font-size:10px;letter-spacing:3px;color:#9aa0a8;padding:7px 0 2px}
+  .brandStrip b{color:#e7c463}
+  .topbar{display:flex;align-items:center;gap:12px;padding:6px 18px 0}
   .back{font-family:'Anton';font-size:22px;color:#cfd3d8}
   .topTitle .a{font-family:'Anton';font-size:20px;color:#fff;letter-spacing:.5px}
 
@@ -30,13 +32,31 @@
   .row.total .v{font-family:'Anton';font-size:24px;color:var(--nitro-1)}
 
   .pay{margin:18px 18px 0}
-  .securedNote{text-align:center;color:var(--txt-dim);font-size:11px;letter-spacing:1.5px;margin-top:12px}
+  /* themed Nitro CTA carrying the official PayPal mark -> triggers the hosted PayPal portal */
+  .payBtn{display:flex;align-items:center;justify-content:center;gap:14px;width:100%;cursor:pointer;
+    padding:14px 0;border-radius:11px;border:1px solid #ff6a5e;
+    background:linear-gradient(180deg,#ff4b3e 0%,var(--wcc-red) 45%,var(--wcc-red-dk) 100%);
+    box-shadow:0 0 22px rgba(226,35,26,.6),inset 0 2px 0 rgba(255,255,255,.4),inset 0 -3px 6px rgba(0,0,0,.4)}
+  .payBtn .amt{font-family:'Anton';font-size:24px;letter-spacing:1.5px;color:#fff;text-shadow:0 2px 2px rgba(0,0,0,.5)}
+  .payBtn .sep{width:1px;height:26px;background:rgba(255,255,255,.45)}
+  .ppChip{display:inline-flex;align-items:center;background:#fff;border-radius:22px;padding:7px 16px 8px;
+    box-shadow:0 2px 6px rgba(0,0,0,.35)}
+  .ppMark{width:20px;height:24px;position:relative;display:inline-block}
+  .ppMark:before,.ppMark:after{content:"";position:absolute;top:0;width:13px;height:21px;
+    border-radius:9px 9px 9px 2px;border:3.5px solid;border-right:none}
+  .ppMark:before{left:0;border-color:#003087}
+  .ppMark:after{left:5px;border-color:#009cde}
+  .ppWord{font-family:'Helvetica Neue',Arial,sans-serif;font-style:italic;font-weight:800;font-size:18px;line-height:1}
+  .ppWord .a{color:#003087}.ppWord .b{color:#0070ba}
+  .payHint{text-align:center;color:#cfd3d8;font-size:11px;letter-spacing:1.5px;margin-top:12px;font-family:'Oswald',sans-serif}
+  .securedNote{text-align:center;color:var(--txt-dim);font-size:11px;letter-spacing:1.5px;margin-top:8px}
   .securedNote b{color:#9affc4}
 </style></head>
 <body>
 <div class="screen">
   <div class="flame" style="bottom:-50px"></div>
   <div class="statusbar"><span>9:41</span><div class="dots">NITRO LIVE ▮▮▮ ▶</div></div>
+  <div class="brandStrip">WCC · WRESTLING CARDS <b>&amp;</b> COLLECTIBLES</div>
 
   <div class="topbar">
     <div class="back">‹</div>
@@ -63,14 +83,16 @@
   <div class="summary">
     <div class="sumHead">ORDER SUMMARY</div>
     <div class="row"><span class="k">Slot · Cody Rhodes</span><span class="v">$40.00</span></div>
-    <div class="row"><span class="k">Break fee</span><span class="v">$3.50</span></div>
-    <div class="row"><span class="k">Shipping (cards)</span><span class="v">$4.99</span></div>
-    <div class="row total"><span class="k">TOTAL</span><span class="v">$48.49</span></div>
   </div>
 
   <div class="pay">
-    <button class="cta">LOCK IT IN · PAY $48.49</button>
-    <div class="securedNote">SECURED CHECKOUT · <b>PAYPAL</b> &amp; CARD ACCEPTED</div>
+    <div class="payBtn">
+      <span class="amt">PAY $40.00</span>
+      <span class="sep"></span>
+      <span class="ppChip"><span class="ppWord"><span class="a">Pay</span><span class="b">Pal</span></span></span>
+    </div>
+    <div class="payHint">YOU'LL CONFIRM SECURELY IN THE PAYPAL PORTAL</div>
+    <div class="securedNote">POWERED BY <b>PAYPAL</b> · CARD PAYMENTS SUPPORTED</div>
   </div>
 </div>
 </body></html>
