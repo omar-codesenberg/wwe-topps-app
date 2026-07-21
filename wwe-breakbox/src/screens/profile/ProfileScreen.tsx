@@ -8,12 +8,16 @@ import {
   Switch,
   ActivityIndicator,
   Alert,
+  TouchableOpacity,
 } from 'react-native';
 import { doc, onSnapshot, updateDoc } from 'firebase/firestore';
 import { useNavigation } from '@react-navigation/native';
 import { firebaseDb } from '../../config/firebase';
 import { useAuthStore } from '../../store/authStore';
+import { signOut } from '../../services/auth.service';
 import { WWEButton } from '../../components/ui/WWEButton';
+import { ScreenBackground } from '../../components/ui/ScreenBackground';
+import { AppHeader } from '../../components/ui/AppHeader';
 import { theme } from '../../constants/theme';
 import { ShippingAddress } from '../../types/user.types';
 
@@ -84,6 +88,29 @@ export function ProfileScreen() {
     setForm((prev) => ({ ...prev, address: { ...prev.address, [key]: value } }));
   };
 
+  const handleSignOut = () => {
+    Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Sign Out',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await signOut();
+          } catch {
+            // auth store listener handles state reset
+          }
+        },
+      },
+    ]);
+  };
+
+  const signOutButton = (
+    <TouchableOpacity onPress={handleSignOut} hitSlop={8}>
+      <Text style={styles.signOut}>SIGN OUT</Text>
+    </TouchableOpacity>
+  );
+
   const handleSave = async () => {
     if (!user) return;
     setSaving(true);
@@ -122,24 +149,30 @@ export function ProfileScreen() {
 
   if (loading) {
     return (
-      <View style={styles.centered}>
-        <ActivityIndicator color={theme.colors.red} size="large" />
-      </View>
+      <ScreenBackground>
+        <AppHeader title="PROFILE" right={signOutButton} />
+        <View style={styles.centered}>
+          <ActivityIndicator color={theme.colors.red} size="large" />
+        </View>
+      </ScreenBackground>
     );
   }
 
   if (!user) {
     return (
-      <View style={styles.centered}>
-        <Text style={styles.errorText}>You must be signed in to view your profile.</Text>
-      </View>
+      <ScreenBackground>
+        <AppHeader title="PROFILE" />
+        <View style={styles.centered}>
+          <Text style={styles.errorText}>You must be signed in to view your profile.</Text>
+        </View>
+      </ScreenBackground>
     );
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.title}>Profile</Text>
-
+    <ScreenBackground>
+      <AppHeader title="PROFILE" right={signOutButton} />
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
       <View style={styles.section}>
         <Text style={styles.label}>EMAIL</Text>
         <View style={[styles.input, styles.readOnly]}>
@@ -271,33 +304,22 @@ export function ProfileScreen() {
       </View>
 
       <WWEButton
-        label="Save Profile"
+        label="SAVE PROFILE"
         onPress={handleSave}
         loading={saving}
         disabled={saving}
         style={styles.saveButton}
       />
-    </ScrollView>
+      </ScrollView>
+    </ScreenBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: theme.colors.background },
   content: { padding: theme.spacing.lg, paddingBottom: theme.spacing.xl * 2 },
-  centered: {
-    flex: 1,
-    backgroundColor: theme.colors.background,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: theme.spacing.lg,
-  },
+  centered: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: theme.spacing.lg },
   errorText: { color: theme.colors.textSecondary, textAlign: 'center' },
-  title: {
-    color: theme.colors.textPrimary,
-    fontSize: theme.sizes.xl,
-    fontWeight: '900',
-    marginBottom: theme.spacing.lg,
-  },
+  signOut: { color: theme.colors.redBright, fontSize: theme.sizes.xs, letterSpacing: 1.5, fontFamily: theme.fonts.heading },
   sectionHeader: {
     color: theme.colors.textSecondary,
     fontSize: theme.sizes.xs,

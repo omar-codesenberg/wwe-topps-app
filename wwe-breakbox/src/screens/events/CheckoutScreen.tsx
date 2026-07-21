@@ -1,16 +1,13 @@
-import React, { useEffect, useCallback, useMemo } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-  Alert,
-} from 'react-native';
+import React, { useEffect, useMemo } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { EventsStackParamList } from '../../navigation/EventsStack';
-import { LockCountdown } from '../../components/slots/LockCountdown';
+import { ScreenBackground } from '../../components/ui/ScreenBackground';
+import { AppHeader } from '../../components/ui/AppHeader';
+import { HoldTimerBanner } from '../../components/ui/HoldTimerBanner';
+import { SlotShowcaseCard } from '../../components/slots/SlotShowcaseCard';
 import { WWEButton } from '../../components/ui/WWEButton';
 import { LoadingOverlay } from '../../components/ui/LoadingOverlay';
 import { useCountdown } from '../../hooks/useCountdown';
@@ -39,6 +36,8 @@ export function CheckoutScreen({ route, navigation }: Props) {
     setIsExpired(true);
     releaseSlot();
   });
+
+  const priceLabel = `$${(slotData.priceCents / 100).toFixed(2)}`;
 
   const releaseSlot = async () => {
     try {
@@ -118,123 +117,144 @@ export function CheckoutScreen({ route, navigation }: Props) {
   };
 
   return (
-    <View style={[styles.container, { paddingBottom: insets.bottom + 16 }]}>
+    <ScreenBackground>
       <LoadingOverlay visible={isPurchasing} />
+      <AppHeader title="CHECKOUT" onBack={handleCancel} />
 
-      <ScrollView contentContainerStyle={styles.content} bounces={false}>
-        {/* Slot info */}
-        <View style={styles.slotInfo}>
-          <Text style={styles.wrestlerName}>{slotData.wrestlerName}</Text>
-          {slotData.members.length > 0 && (
-            <Text style={styles.members}>{slotData.members.join(' • ')}</Text>
-          )}
-          <Text style={styles.price}>${(slotData.priceCents / 100).toFixed(2)}</Text>
-        </View>
+      <ScrollView
+        contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 24 }]}
+        bounces={false}
+        showsVerticalScrollIndicator={false}
+      >
+        <SlotShowcaseCard slot={slotData} />
 
-        {/* Countdown */}
-        <View style={styles.countdownSection}>
-          {isExpired ? (
-            <View style={styles.expiredContainer}>
-              <Text style={styles.expiredTitle}>TIME EXPIRED</Text>
-              <Text style={styles.expiredSub}>SLOT RELEASED</Text>
-            </View>
-          ) : (
-            <>
-              <Text style={styles.timerLabel}>RESERVATION EXPIRES IN</Text>
-              <LockCountdown secondsRemaining={secondsRemaining} />
-            </>
-          )}
-        </View>
-
-        {/* One slot notice */}
-        <Text style={styles.notice}>ONE SPOT PER TRANSACTION</Text>
-
-        {/* Fake PayPal button */}
-        {!isExpired && (
-          <TouchableOpacity
-            style={[styles.paypalButton, isPurchasing && styles.paypalDisabled]}
-            onPress={handlePurchase}
-            disabled={isPurchasing}
-            activeOpacity={0.85}
-          >
-            <View style={styles.paypalInner}>
-              <Text style={styles.paypalText}>Pay</Text>
-              <Text style={[styles.paypalText, styles.paypalBold]}>Pal</Text>
-            </View>
-            <Text style={styles.paypalSub}>SECURE PAYMENT WITH PAYPAL</Text>
-            {/* TODO: Replace with PayPal SDK integration */}
-          </TouchableOpacity>
+        {/* Hold timer */}
+        {isExpired ? (
+          <View style={styles.expired}>
+            <Text style={styles.expiredTitle}>TIME EXPIRED</Text>
+            <Text style={styles.expiredSub}>SLOT RELEASED</Text>
+          </View>
+        ) : (
+          <HoldTimerBanner secondsRemaining={secondsRemaining} style={styles.banner} />
         )}
 
-        {isExpired ? (
-          <WWEButton label="Go Back" onPress={() => navigation.goBack()} style={styles.cancelBtn} />
+        {/* Order summary */}
+        <View style={styles.summary}>
+          <Text style={styles.summaryTitle}>ORDER SUMMARY</Text>
+          <View style={styles.summaryDivider} />
+          <View style={styles.summaryRow}>
+            <Text style={styles.summaryLabel}>Slot · {slotData.wrestlerName}</Text>
+            <Text style={styles.summaryValue}>{priceLabel}</Text>
+          </View>
+        </View>
+
+        {/* Pay button */}
+        {!isExpired ? (
+          <>
+            <TouchableOpacity
+              activeOpacity={0.85}
+              onPress={handlePurchase}
+              disabled={isPurchasing}
+              style={[styles.payShadow, isPurchasing && styles.payDisabled]}
+            >
+              <LinearGradient
+                colors={theme.gradients.redButton}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 0, y: 1 }}
+                style={styles.payBtn}
+              >
+                <View style={styles.payGloss} pointerEvents="none" />
+                <Text style={styles.payText}>PAY {priceLabel}</Text>
+                <View style={styles.payDivider} />
+                <View style={styles.paypalChip}>
+                  <Text style={styles.paypalPay}>Pay</Text>
+                  <Text style={styles.paypalPal}>Pal</Text>
+                </View>
+              </LinearGradient>
+            </TouchableOpacity>
+            <Text style={styles.fine}>YOU'LL CONFIRM SECURELY IN THE PAYPAL PORTAL</Text>
+            <Text style={styles.fineDim}>POWERED BY PAYPAL · CARD PAYMENTS SUPPORTED</Text>
+          </>
         ) : (
-          <WWEButton
-            label="Cancel"
-            onPress={handleCancel}
-            variant="outline"
-            style={styles.cancelBtn}
-            disabled={isPurchasing}
-          />
+          <WWEButton label="GO BACK" onPress={() => navigation.goBack()} style={styles.goBack} />
         )}
       </ScrollView>
-    </View>
+    </ScreenBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: theme.colors.background },
-  content: { flexGrow: 1, paddingHorizontal: theme.spacing.lg, paddingTop: theme.spacing.lg },
-  slotInfo: { alignItems: 'center', marginBottom: theme.spacing.xl },
-  wrestlerName: {
-    color: theme.colors.textPrimary,
-    fontSize: theme.sizes.xl,
-    fontWeight: '900',
-    textAlign: 'center',
-    marginBottom: 6,
-    fontFamily: 'Oswald_700Bold',
-  },
-  members: {
-    color: theme.colors.textSecondary,
-    fontSize: theme.sizes.xs,
-    textAlign: 'center',
-    marginBottom: theme.spacing.sm,
-  },
-  price: {
-    color: theme.colors.gold,
-    fontSize: 42,
-    fontWeight: '900',
-    marginTop: theme.spacing.md,
-    fontFamily: 'Oswald_700Bold',
-  },
-  countdownSection: { alignItems: 'center', marginBottom: theme.spacing.xl },
-  timerLabel: {
-    color: theme.colors.textSecondary,
-    fontSize: theme.sizes.xs,
-    letterSpacing: 3,
-    marginBottom: theme.spacing.md,
-  },
-  expiredContainer: { alignItems: 'center' },
-  expiredTitle: { color: theme.colors.red, fontSize: theme.sizes.xl, fontWeight: '900', letterSpacing: 4 },
+  content: { paddingHorizontal: theme.spacing.lg, paddingTop: theme.spacing.sm },
+  banner: { marginTop: theme.spacing.lg },
+  expired: { alignItems: 'center', marginTop: theme.spacing.lg },
+  expiredTitle: { color: theme.colors.red, fontSize: theme.sizes.xl, fontFamily: theme.fonts.display, letterSpacing: 2 },
   expiredSub: { color: theme.colors.textSecondary, fontSize: theme.sizes.sm, letterSpacing: 3, marginTop: 4 },
-  notice: {
+  summary: {
+    marginTop: theme.spacing.lg,
+    backgroundColor: theme.colors.card,
+    borderRadius: theme.radius.md,
+    borderWidth: 1,
+    borderColor: theme.colors.hairline,
+    padding: theme.spacing.md,
+  },
+  summaryTitle: {
+    color: theme.colors.textPrimary,
+    fontSize: theme.sizes.sm,
+    letterSpacing: 2,
+    fontFamily: theme.fonts.display,
+  },
+  summaryDivider: { height: 1, backgroundColor: theme.colors.hairline, marginVertical: theme.spacing.sm },
+  summaryRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  summaryLabel: { color: theme.colors.textSecondary, fontSize: theme.sizes.sm, fontFamily: theme.fonts.medium },
+  summaryValue: { color: theme.colors.textPrimary, fontSize: theme.sizes.md, fontFamily: theme.fonts.heading },
+  payShadow: {
+    marginTop: theme.spacing.xl,
+    borderRadius: theme.radius.sm,
+    shadowColor: theme.colors.redGlow,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.95,
+    shadowRadius: 18,
+    elevation: 8,
+  },
+  payDisabled: { opacity: 0.6 },
+  payBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 14,
+    minHeight: 64,
+    borderRadius: theme.radius.sm,
+    borderWidth: 1,
+    borderColor: theme.colors.metalBorder,
+    overflow: 'hidden',
+  },
+  payGloss: { position: 'absolute', top: 0, left: 0, right: 0, height: '45%', backgroundColor: 'rgba(255,255,255,0.18)' },
+  payText: { color: '#FFFFFF', fontSize: theme.sizes.lg, fontFamily: theme.fonts.display, letterSpacing: 1 },
+  payDivider: { width: 1, height: 28, backgroundColor: 'rgba(255,255,255,0.5)' },
+  paypalChip: {
+    flexDirection: 'row',
+    backgroundColor: '#FFFFFF',
+    borderRadius: theme.radius.full,
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+  },
+  paypalPay: { color: '#003087', fontSize: theme.sizes.md, fontWeight: '800', fontStyle: 'italic' },
+  paypalPal: { color: '#009CDE', fontSize: theme.sizes.md, fontWeight: '800', fontStyle: 'italic' },
+  fine: {
     color: theme.colors.textSecondary,
     fontSize: theme.sizes.xs,
-    letterSpacing: 3,
     textAlign: 'center',
-    marginBottom: theme.spacing.lg,
+    letterSpacing: 1,
+    marginTop: theme.spacing.md,
+    fontFamily: theme.fonts.medium,
   },
-  paypalButton: {
-    backgroundColor: '#0070BA',
-    borderRadius: theme.radius.md,
-    padding: theme.spacing.md,
-    alignItems: 'center',
-    marginBottom: theme.spacing.sm,
+  fineDim: {
+    color: theme.colors.textDimmed,
+    fontSize: theme.sizes.xxs,
+    textAlign: 'center',
+    letterSpacing: 1,
+    marginTop: 4,
+    fontFamily: theme.fonts.medium,
   },
-  paypalDisabled: { opacity: 0.6 },
-  paypalInner: { flexDirection: 'row' },
-  paypalText: { color: '#FFFFFF', fontSize: 22, fontWeight: '400', fontStyle: 'italic' },
-  paypalBold: { fontWeight: '700', color: '#009CDE' },
-  paypalSub: { color: 'rgba(255,255,255,0.8)', fontSize: theme.sizes.xs, letterSpacing: 2, marginTop: 4 },
-  cancelBtn: { marginTop: theme.spacing.sm },
+  goBack: { marginTop: theme.spacing.xl },
 });

@@ -13,6 +13,8 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { signUp } from '../../services/auth.service';
 import { WWEButton } from '../../components/ui/WWEButton';
 import { GlassCard } from '../../components/ui/GlassCard';
+import { ScreenBackground } from '../../components/ui/ScreenBackground';
+import { WCCLogo } from '../../components/ui/WCCLogo';
 import { useToastStore } from '../../store/toastStore';
 import { theme } from '../../constants/theme';
 import { AuthStackParamList } from '../../navigation/AuthStack';
@@ -54,14 +56,14 @@ export function RegisterScreen({ navigation }: Props) {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
+    <ScreenBackground>
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
         <View style={styles.header}>
-          <Text style={styles.brand}>BREAKBOX</Text>
-          <Text style={styles.brandWwe}>WWE</Text>
+          <WCCLogo width={260} />
         </View>
 
         <GlassCard style={styles.card}>
@@ -95,7 +97,7 @@ export function RegisterScreen({ navigation }: Props) {
           />
 
           <WWEButton
-            label="Join the Arena"
+            label="JOIN THE ARENA"
             onPress={handleRegister}
             loading={loading}
             style={styles.button}
@@ -108,25 +110,23 @@ export function RegisterScreen({ navigation }: Props) {
           </TouchableOpacity>
         </GlassCard>
       </ScrollView>
-    </KeyboardAvoidingView>
+      </KeyboardAvoidingView>
+    </ScreenBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: theme.colors.background },
+  container: { flex: 1 },
   scroll: { flexGrow: 1, justifyContent: 'center', padding: theme.spacing.lg },
   header: { alignItems: 'center', marginBottom: theme.spacing.xl },
-  brand: { color: theme.colors.textPrimary, fontSize: 36, fontWeight: '900', letterSpacing: 4, fontFamily: 'Oswald_700Bold' },
-  brandWwe: { color: theme.colors.red, fontSize: 52, fontWeight: '900', letterSpacing: 8, marginTop: -8, fontFamily: 'Oswald_700Bold' },
   card: { padding: theme.spacing.lg },
   title: {
     color: theme.colors.gold,
     fontSize: theme.sizes.md,
-    fontWeight: '700',
-    letterSpacing: 4,
+    letterSpacing: 3,
     textAlign: 'center',
     marginBottom: theme.spacing.lg,
-    fontFamily: 'Oswald_700Bold',
+    fontFamily: theme.fonts.display,
   },
   input: {
     backgroundColor: 'rgba(255,255,255,0.06)',
