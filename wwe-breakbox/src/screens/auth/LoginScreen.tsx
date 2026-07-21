@@ -51,7 +51,7 @@ export function LoginScreen({ navigation }: Props) {
   };
 
   return (
-    <StageBackground>
+    <StageBackground animateIn>
       <KeyboardAvoidingView
         style={styles.container}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
