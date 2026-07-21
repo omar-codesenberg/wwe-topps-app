@@ -22,24 +22,18 @@ export function EventsStack() {
   return (
     <Stack.Navigator
       screenOptions={{
-        headerStyle: { backgroundColor: theme.colors.background },
-        headerTintColor: theme.colors.textPrimary,
-        headerTitleStyle: { color: theme.colors.red, fontWeight: '900', letterSpacing: 3, fontFamily: 'Oswald_700Bold', fontSize: 16 },
+        headerShown: false,
         contentStyle: { backgroundColor: theme.colors.background },
       }}
     >
-      <Stack.Screen name="EventsList" component={EventsListScreen} options={{ title: 'BREAKBOX WWE', headerShown: false }} />
-      <Stack.Screen name="EventDetail" component={EventDetailScreen} options={{ title: 'EVENT DETAILS' }} />
-      <Stack.Screen name="SlotsRoster" component={SlotsRosterScreen} options={{ title: 'THE ROSTER' }} />
-      <Stack.Screen
-        name="Checkout"
-        component={CheckoutScreen}
-        options={{ title: 'CHECKOUT', presentation: 'modal' }}
-      />
+      <Stack.Screen name="EventsList" component={EventsListScreen} />
+      <Stack.Screen name="EventDetail" component={EventDetailScreen} />
+      <Stack.Screen name="SlotsRoster" component={SlotsRosterScreen} />
+      <Stack.Screen name="Checkout" component={CheckoutScreen} options={{ presentation: 'modal' }} />
       <Stack.Screen
         name="PurchaseSuccess"
         component={PurchaseSuccessScreen}
-        options={{ headerShown: false, presentation: 'modal' }}
+        options={{ presentation: 'modal' }}
       />
     </Stack.Navigator>
   );

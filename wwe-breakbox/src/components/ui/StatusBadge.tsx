@@ -2,39 +2,59 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { SlotStatus } from '../../types/slot.types';
 import { theme } from '../../constants/theme';
+import { useCountdown } from '../../hooks/useCountdown';
 
 interface StatusBadgeProps {
   status: SlotStatus;
   isMyLock?: boolean;
+  /** When this is the current user's lock, show a live "RESERVED · m:ss" countdown */
+  lockedUntil?: Date | null;
 }
 
-export function StatusBadge({ status, isMyLock }: StatusBadgeProps) {
+function fmt(total: number) {
+  const s = Math.max(0, total);
+  const m = Math.floor(s / 60);
+  const sec = s % 60;
+  return `${m}:${sec.toString().padStart(2, '0')}`;
+}
+
+export function StatusBadge({ status, isMyLock, lockedUntil }: StatusBadgeProps) {
+  const { secondsRemaining } = useCountdown(isMyLock && lockedUntil ? lockedUntil : null);
+
   if (status === 'available') {
     return (
-      <View style={[styles.badge, styles.available]}>
+      <View style={[styles.badge, styles.greenBorder]}>
         <View style={styles.dot} />
-        <Text style={[styles.text, { color: theme.colors.success }]}>LIVE</Text>
+        <Text style={[styles.text, { color: theme.colors.success }]}>AVAILABLE</Text>
       </View>
     );
   }
   if (status === 'locked') {
-    const color = isMyLock ? theme.colors.gold : theme.colors.warning;
+    if (isMyLock) {
+      return (
+        <View style={[styles.badge, styles.cyanBorder]}>
+          <Text style={[styles.text, { color: theme.colors.cyanBright }]}>
+            RESERVED{lockedUntil ? ` · ${fmt(secondsRemaining)}` : ''}
+          </Text>
+        </View>
+      );
+    }
     return (
-      <View style={[styles.badge, { backgroundColor: 'rgba(245,158,11,0.15)', borderColor: 'rgba(245,158,11,0.3)' }]}>
-        <Text style={[styles.text, { color }]}>{isMyLock ? 'YOUR LOCK' : 'LOCKED'}</Text>
+      <View style={[styles.badge, styles.goldBorder]}>
+        <Text style={[styles.text, { color: theme.colors.gold }]}>RESERVING…</Text>
       </View>
     );
   }
   if (status === 'closed') {
     return (
-      <View style={[styles.badge, styles.closed]}>
-        <Text style={[styles.text, { color: theme.colors.textDimmed }]}>CLOSED</Text>
+      <View style={[styles.badge, styles.grayBorder]}>
+        <Text style={[styles.text, { color: theme.colors.claimedGray }]}>CLOSED</Text>
       </View>
     );
   }
   return (
-    <View style={[styles.badge, styles.sold]}>
-      <Text style={[styles.text, { color: theme.colors.textDimmed }]}>CLAIMED</Text>
+    <View style={[styles.badge, styles.grayBorder]}>
+      <Text style={[styles.text, { color: theme.colors.claimedGray }]}>CLAIMED</Text>
     </View>
   );
 }
@@ -43,30 +63,17 @@ const styles = StyleSheet.create({
   badge: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: theme.radius.full,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: theme.radius.sm,
     borderWidth: 1,
     alignSelf: 'flex-start',
-    gap: 4,
+    gap: 5,
   },
-  available: {
-    backgroundColor: 'rgba(34,197,94,0.15)',
-    borderColor: 'rgba(34,197,94,0.3)',
-  },
-  sold: {
-    backgroundColor: 'rgba(102,102,102,0.15)',
-    borderColor: 'rgba(102,102,102,0.3)',
-  },
-  closed: {
-    backgroundColor: 'rgba(102,102,102,0.15)',
-    borderColor: 'rgba(102,102,102,0.3)',
-  },
-  dot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: '#22C55E',
-  },
-  text: { fontSize: theme.sizes.xs, fontWeight: '700', letterSpacing: 1 },
+  greenBorder: { backgroundColor: theme.colors.successDim, borderColor: 'rgba(61,208,106,0.45)' },
+  cyanBorder: { backgroundColor: 'rgba(43,184,240,0.12)', borderColor: 'rgba(43,184,240,0.5)' },
+  goldBorder: { backgroundColor: 'rgba(255,196,46,0.1)', borderColor: 'rgba(255,196,46,0.45)' },
+  grayBorder: { backgroundColor: theme.colors.claimedGrayDim, borderColor: 'rgba(120,126,138,0.4)' },
+  dot: { width: 7, height: 7, borderRadius: 3.5, backgroundColor: theme.colors.success },
+  text: { fontSize: theme.sizes.xs, fontFamily: theme.fonts.heading, letterSpacing: 1 },
 });

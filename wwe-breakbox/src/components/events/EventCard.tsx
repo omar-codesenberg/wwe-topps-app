@@ -20,7 +20,7 @@ export function EventCard({ event, onPress }: EventCardProps) {
     <TouchableOpacity onPress={onPress} activeOpacity={0.8}>
       <GlassCard style={styles.card}>
         <View style={styles.row}>
-          <View style={styles.statusDot(event.status)} />
+          <View style={[styles.statusDot, { backgroundColor: STATUS_COLOR[event.status] }]} />
           <Text style={[styles.status, { color: STATUS_COLOR[event.status] }]}>
             {event.status.toUpperCase()}
           </Text>
@@ -37,12 +37,7 @@ export function EventCard({ event, onPress }: EventCardProps) {
 const styles = StyleSheet.create({
   card: { padding: theme.spacing.md, marginBottom: theme.spacing.sm },
   row: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4 },
-  statusDot: (status: string): any => ({
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: STATUS_COLOR[status],
-  }),
+  statusDot: { width: 8, height: 8, borderRadius: 4 },
   status: { fontSize: theme.sizes.xs, fontWeight: '700', letterSpacing: 2 },
   title: { color: theme.colors.textPrimary, fontSize: theme.sizes.sm, fontWeight: '700', marginBottom: 4 },
   progress: { color: theme.colors.textSecondary, fontSize: theme.sizes.xs },

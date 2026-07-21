@@ -11,12 +11,35 @@ import {
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { EventsStackParamList } from '../../navigation/EventsStack';
-import { EventCountdown } from '../../components/events/EventCountdown';
+import { StageBackground } from '../../components/ui/StageBackground';
+import { WCCLogo } from '../../components/ui/WCCLogo';
+import { LivePill } from '../../components/ui/LivePill';
+import { ProgressBar } from '../../components/ui/ProgressBar';
+import { SlotOrbs } from '../../components/ui/SlotOrbs';
 import { WWEButton } from '../../components/ui/WWEButton';
 import { useEvents } from '../../hooks/useEvents';
+import { useCountdown } from '../../hooks/useCountdown';
+import { BreakEvent } from '../../types/event.types';
 import { theme } from '../../constants/theme';
 
 type Props = NativeStackScreenProps<EventsStackParamList, 'EventsList'>;
+
+function fmtClock(total: number) {
+  const s = Math.max(0, total);
+  const m = Math.floor(s / 60);
+  const sec = s % 60;
+  return `${m}:${sec.toString().padStart(2, '0')}`;
+}
+
+function TimeLeftPill({ closesAt }: { closesAt: Date }) {
+  const { secondsRemaining, isExpired } = useCountdown(closesAt);
+  if (isExpired) return null;
+  return (
+    <View style={styles.timePill}>
+      <Text style={styles.timePillText}>{fmtClock(secondsRemaining)} LEFT</Text>
+    </View>
+  );
+}
 
 export function EventsListScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
@@ -24,252 +47,296 @@ export function EventsListScreen({ navigation }: Props) {
   const event = liveEvents[0] ?? events[0] ?? null;
   const eventId = event?.id ?? '';
 
-  // Exclude the currently-featured event (if it happens to be upcoming) from the
-  // separate "Upcoming" section so we don't render it twice.
   const upcomingToList = upcomingEvents.filter((e) => e.id !== event?.id);
   const otherLiveEvents = liveEvents.filter((e) => e.id !== event?.id);
 
   const canEnter = event?.status === 'live';
+  const orbCount = 8;
+  const claimedOrbs =
+    event && event.totalSlots > 0
+      ? Math.round((event.soldSlots / event.totalSlots) * orbCount)
+      : 0;
 
-  const glowAnim = useRef(new Animated.Value(0)).current;
-
+  const glowAnim = useRef(new Animated.Value(0.4)).current;
   useEffect(() => {
     if (canEnter) {
-      Animated.loop(
+      const loop = Animated.loop(
         Animated.sequence([
           Animated.timing(glowAnim, { toValue: 1, duration: 1000, useNativeDriver: false }),
-          Animated.timing(glowAnim, { toValue: 0, duration: 1000, useNativeDriver: false }),
+          Animated.timing(glowAnim, { toValue: 0.4, duration: 1000, useNativeDriver: false }),
         ])
-      ).start();
-    } else {
-      glowAnim.stopAnimation();
-      glowAnim.setValue(0);
+      );
+      loop.start();
+      return () => loop.stop();
     }
+    glowAnim.setValue(0.4);
   }, [canEnter]);
 
   if (eventLoading) {
     return (
-      <View style={styles.centered}>
-        <ActivityIndicator color={theme.colors.red} size="large" />
-      </View>
+      <StageBackground>
+        <View style={styles.centered}>
+          <ActivityIndicator color={theme.colors.red} size="large" />
+        </View>
+      </StageBackground>
     );
   }
 
   return (
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={[styles.content, { paddingTop: insets.top + 16 }]}
-    >
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.brandTop}>BREAKBOX</Text>
-        <Text style={styles.brandWwe}>WWE</Text>
-      </View>
-
-      {/* Event title */}
-      {event && (
-        <Text style={styles.eventTitle}>{event.title}</Text>
-      )}
-
-      {/* Countdown / Live badge */}
-      {event && <EventCountdown event={event} />}
-
-      {/* Progress */}
-      {event && (
-        <View style={styles.progressRow}>
-          <Text style={styles.progressText}>
-            {event.soldSlots}/{event.totalSlots} SLOTS CLAIMED
-          </Text>
-          <View style={styles.progressBar}>
-            <View
-              style={[
-                styles.progressFill,
-                { width: `${(event.soldSlots / event.totalSlots) * 100}%` },
-              ]}
-            />
-          </View>
-        </View>
-      )}
-
-      {/* CTA */}
-      <Animated.View
-        style={[
-          styles.ctaWrapper,
-          {
-            shadowColor: theme.colors.red,
-            shadowOffset: { width: 0, height: 0 },
-            shadowOpacity: glowAnim as any,
-            shadowRadius: 12,
-            elevation: 6,
-          },
-        ]}
+    <StageBackground>
+      <ScrollView
+        contentContainerStyle={[styles.content, { paddingTop: insets.top + 16 }]}
+        showsVerticalScrollIndicator={false}
       >
-        <WWEButton
-          label={event?.status === 'closed' ? 'EVENT CLOSED' : 'ENTER THE ARENA'}
-          onPress={() => navigation.navigate('SlotsRoster', { eventId: eventId })}
-          disabled={!canEnter}
-          style={styles.ctaButton}
-        />
-      </Animated.View>
-
-      {/* Other live events — admin may have started multiple */}
-      {otherLiveEvents.length > 0 && (
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>LIVE NOW</Text>
-          <Text style={styles.sectionSubtitle}>ENTER TO PICK SLOTS</Text>
-          {otherLiveEvents.map((ev) => (
-            <TouchableOpacity
-              key={ev.id}
-              style={[styles.upcomingCard, styles.liveCard]}
-              onPress={() => navigation.navigate('SlotsRoster', { eventId: ev.id })}
-              activeOpacity={0.8}
-            >
-              <View style={styles.liveBadgeRow}>
-                <View style={styles.liveDot} />
-                <Text style={styles.liveBadgeText}>LIVE</Text>
-              </View>
-              <Text style={styles.upcomingTitle}>{ev.title}</Text>
-              {!!ev.description && (
-                <Text style={styles.upcomingDescription} numberOfLines={2}>
-                  {ev.description}
-                </Text>
-              )}
-              <Text style={styles.upcomingMeta}>
-                {ev.soldSlots}/{ev.totalSlots} CLAIMED • TAP TO ENTER
-              </Text>
-            </TouchableOpacity>
-          ))}
+        {/* Logo */}
+        <View style={styles.logoWrap}>
+          <WCCLogo width={300} />
+          <Text style={styles.tagline}>WRESTLING CARDS & COLLECTIBLES</Text>
         </View>
-      )}
 
-      {/* Upcoming breaks */}
-      {upcomingToList.length > 0 && (
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>UPCOMING</Text>
-          <Text style={styles.sectionSubtitle}>NEXT BREAKS</Text>
-          {upcomingToList.map((ev) => (
-            <View key={ev.id} style={styles.upcomingCard}>
-              <Text style={styles.upcomingTitle}>{ev.title}</Text>
-              <Text style={styles.upcomingWhen}>{formatEventWhen(ev.opensAt)}</Text>
-              {!!ev.description && (
-                <Text style={styles.upcomingDescription} numberOfLines={2}>
-                  {ev.description}
-                </Text>
-              )}
-              <Text style={styles.upcomingMeta}>
-                {ev.totalSlots} SLOTS
-              </Text>
+        {event && (
+          <>
+            <Text style={styles.eventTitle}>{event.title.toUpperCase()}</Text>
+            <Text style={styles.eventMeta}>
+              {event.description ? event.description.toUpperCase() : `${event.totalSlots} SLOTS`}
+            </Text>
+
+            {/* Live + time left */}
+            <View style={styles.liveRow}>
+              {event.status === 'live' && <LivePill />}
+              {event.status === 'live' && event.closesAt && <TimeLeftPill closesAt={event.closesAt} />}
             </View>
-          ))}
-        </View>
-      )}
 
-      {!event && !eventLoading && (
-        <View style={styles.noEvent}>
-          <Text style={styles.noEventText}>No upcoming events.</Text>
-          <Text style={styles.noEventSub}>Check back soon!</Text>
-        </View>
-      )}
-    </ScrollView>
+            {/* Progress + orbs */}
+            <View style={styles.progressWrap}>
+              <ProgressBar current={event.soldSlots} total={event.totalSlots} />
+              <SlotOrbs count={orbCount} claimed={claimedOrbs} size={22} style={styles.orbs} />
+            </View>
+
+            {/* CTA */}
+            <Animated.View
+              style={[
+                styles.ctaWrap,
+                {
+                  shadowColor: theme.colors.redBright,
+                  shadowOffset: { width: 0, height: 0 },
+                  shadowOpacity: glowAnim as any,
+                  shadowRadius: 18,
+                },
+              ]}
+            >
+              <WWEButton
+                label={event.status === 'closed' ? 'EVENT CLOSED' : 'ENTER THE ARENA'}
+                onPress={() => navigation.navigate('SlotsRoster', { eventId })}
+                disabled={!canEnter}
+                style={styles.ctaButton}
+                textStyle={styles.ctaLabel}
+              />
+            </Animated.View>
+            <Text style={styles.ctaHint}>TAP TO HIT THE ENTRANCE RAMP</Text>
+          </>
+        )}
+
+        {/* Other live events */}
+        {otherLiveEvents.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>LIVE NOW</Text>
+            {otherLiveEvents.map((ev) => (
+              <UpNextCard key={ev.id} event={ev} live onPress={() => navigation.navigate('SlotsRoster', { eventId: ev.id })} />
+            ))}
+          </View>
+        )}
+
+        {/* Up next */}
+        {upcomingToList.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>
+              UP <Text style={styles.sectionTitleAccent}>NEXT</Text>
+            </Text>
+            {upcomingToList.map((ev) => (
+              <UpNextCard key={ev.id} event={ev} />
+            ))}
+          </View>
+        )}
+
+        {!event && (
+          <View style={styles.noEvent}>
+            <Text style={styles.noEventText}>No upcoming events.</Text>
+            <Text style={styles.noEventSub}>Check back soon!</Text>
+          </View>
+        )}
+      </ScrollView>
+    </StageBackground>
+  );
+}
+
+function UpNextCard({
+  event,
+  live,
+  onPress,
+}: {
+  event: BreakEvent;
+  live?: boolean;
+  onPress?: () => void;
+}) {
+  return (
+    <TouchableOpacity
+      style={[styles.upNextCard, live && styles.upNextLive]}
+      onPress={onPress}
+      activeOpacity={onPress ? 0.8 : 1}
+      disabled={!onPress}
+    >
+      <View style={styles.upNextBadge}>
+        <Text style={styles.upNextBadgeText}>WCC</Text>
+      </View>
+      <View style={styles.upNextInfo}>
+        <Text style={styles.upNextTitle} numberOfLines={1}>
+          {event.title.toUpperCase()}
+        </Text>
+        <Text style={styles.upNextMeta}>{event.totalSlots} SLOTS</Text>
+      </View>
+      <View style={styles.upNextRight}>
+        {live ? (
+          <LivePill />
+        ) : (
+          <Text style={styles.upNextWhen}>{formatEventWhen(event.opensAt)}</Text>
+        )}
+      </View>
+    </TouchableOpacity>
   );
 }
 
 function formatEventWhen(date: Date): string {
-  const dateStr = date.toLocaleDateString(undefined, {
-    weekday: 'short',
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  });
-  const timeStr = date.toLocaleTimeString(undefined, {
-    hour: 'numeric',
-    minute: '2-digit',
-  });
-  return `${dateStr} • ${timeStr}`;
+  const today = new Date();
+  const isSameDay = date.toDateString() === today.toDateString();
+  const dateStr = isSameDay
+    ? 'TONIGHT'
+    : date.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' }).toUpperCase();
+  const timeStr = date
+    .toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })
+    .toUpperCase();
+  return `${dateStr}\n${timeStr}`;
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: theme.colors.background },
-  content: { paddingBottom: 32 },
-  centered: { flex: 1, backgroundColor: theme.colors.background, alignItems: 'center', justifyContent: 'center' },
-  header: { alignItems: 'center', marginBottom: theme.spacing.sm },
-  brandTop: { color: theme.colors.textPrimary, fontSize: 22, fontWeight: '900', letterSpacing: 6, fontFamily: 'Oswald_700Bold' },
-  brandWwe: { color: theme.colors.red, fontSize: 38, fontWeight: '900', letterSpacing: 8, marginTop: -6, fontFamily: 'Oswald_700Bold' },
-  eventTitle: {
+  content: { paddingBottom: 40, paddingHorizontal: theme.spacing.lg },
+  centered: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  logoWrap: { alignItems: 'center', marginBottom: theme.spacing.md },
+  tagline: {
     color: theme.colors.textSecondary,
+    fontSize: theme.sizes.xs,
+    letterSpacing: 3,
+    marginTop: theme.spacing.sm,
+    fontFamily: theme.fonts.heading,
+  },
+  eventTitle: {
+    color: theme.colors.textPrimary,
+    fontSize: theme.sizes.lg,
+    textAlign: 'center',
+    letterSpacing: 1,
+    fontFamily: theme.fonts.heading,
+  },
+  eventMeta: {
+    color: theme.colors.textMuted,
     fontSize: theme.sizes.xs,
     textAlign: 'center',
     letterSpacing: 2,
-    marginBottom: theme.spacing.sm,
-    paddingHorizontal: theme.spacing.lg,
-    fontFamily: 'Oswald_400Regular',
+    marginTop: 4,
+    fontFamily: theme.fonts.medium,
   },
-  progressRow: { paddingHorizontal: theme.spacing.lg, marginBottom: theme.spacing.md },
-  progressText: { color: theme.colors.textSecondary, fontSize: theme.sizes.xs, letterSpacing: 2, marginBottom: 6, textAlign: 'center' },
-  progressBar: { height: 4, backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 2 },
-  progressFill: { height: 4, backgroundColor: theme.colors.red, borderRadius: 2 },
-  ctaWrapper: { marginHorizontal: theme.spacing.lg, marginBottom: theme.spacing.lg },
-  ctaButton: {},
-  section: { paddingHorizontal: theme.spacing.lg },
-  sectionTitle: { color: theme.colors.textPrimary, fontSize: theme.sizes.sm, fontWeight: '900', letterSpacing: 3, fontFamily: 'Oswald_700Bold' },
-  sectionSubtitle: { color: theme.colors.gold, fontSize: theme.sizes.xs, letterSpacing: 3, marginBottom: theme.spacing.sm, fontFamily: 'Oswald_700Bold' },
-  noEvent: { alignItems: 'center', marginTop: 60 },
-  noEventText: { color: theme.colors.textSecondary, fontSize: theme.sizes.md },
-  noEventSub: { color: theme.colors.textDimmed, fontSize: theme.sizes.sm, marginTop: 4 },
-  upcomingCard: {
-    backgroundColor: 'rgba(255,255,255,0.04)',
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
-    padding: theme.spacing.md,
-    marginTop: theme.spacing.sm,
-  },
-  upcomingTitle: {
-    color: theme.colors.textPrimary,
-    fontSize: theme.sizes.md,
-    fontWeight: '900',
-    letterSpacing: 1,
-    fontFamily: 'Oswald_700Bold',
-    marginBottom: 4,
-  },
-  upcomingWhen: {
-    color: theme.colors.gold,
-    fontSize: theme.sizes.xs,
-    letterSpacing: 2,
-    fontFamily: 'Oswald_700Bold',
-    marginBottom: 6,
-  },
-  upcomingDescription: {
-    color: theme.colors.textSecondary,
-    fontSize: theme.sizes.sm,
-    marginBottom: 6,
-  },
-  upcomingMeta: {
-    color: theme.colors.textDimmed,
-    fontSize: theme.sizes.xs,
-    letterSpacing: 2,
-  },
-  liveCard: {
-    borderColor: theme.colors.red,
-    backgroundColor: 'rgba(229, 9, 20, 0.08)',
-  },
-  liveBadgeRow: {
+  liveRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 6,
+    justifyContent: 'center',
+    gap: 10,
+    marginVertical: theme.spacing.md,
   },
-  liveDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: theme.colors.red,
-    marginRight: 6,
+  timePill: {
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: theme.radius.sm,
+    borderWidth: 1,
+    borderColor: theme.colors.hairlineStrong,
+    backgroundColor: 'rgba(255,255,255,0.04)',
   },
-  liveBadgeText: {
-    color: theme.colors.red,
+  timePillText: {
+    color: theme.colors.textPrimary,
+    fontSize: theme.sizes.sm,
+    fontFamily: theme.fonts.display,
+    letterSpacing: 1,
+  },
+  progressWrap: { marginBottom: theme.spacing.lg },
+  orbs: { marginTop: theme.spacing.md },
+  ctaWrap: { borderRadius: theme.radius.sm, marginBottom: theme.spacing.sm },
+  ctaButton: { paddingVertical: 20 },
+  ctaLabel: { fontSize: theme.sizes.lg, letterSpacing: 2 },
+  ctaHint: {
+    color: theme.colors.textMuted,
     fontSize: theme.sizes.xs,
-    fontWeight: '900',
-    letterSpacing: 3,
-    fontFamily: 'Oswald_700Bold',
+    textAlign: 'center',
+    letterSpacing: 2,
+    fontFamily: theme.fonts.medium,
+    marginBottom: theme.spacing.xl,
   },
+  section: { marginTop: theme.spacing.lg },
+  sectionTitle: {
+    color: theme.colors.textPrimary,
+    fontSize: theme.sizes.md,
+    letterSpacing: 2,
+    fontFamily: theme.fonts.display,
+    marginBottom: theme.spacing.sm,
+  },
+  sectionTitleAccent: { color: theme.colors.cyan },
+  upNextCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.md,
+    backgroundColor: theme.colors.card,
+    borderRadius: theme.radius.md,
+    borderWidth: 1,
+    borderColor: theme.colors.hairline,
+    padding: theme.spacing.md,
+    marginBottom: theme.spacing.sm,
+  },
+  upNextLive: { borderColor: 'rgba(255,26,26,0.4)' },
+  upNextBadge: {
+    width: 44,
+    height: 44,
+    borderRadius: theme.radius.sm,
+    borderWidth: 1,
+    borderColor: theme.colors.hairlineStrong,
+    backgroundColor: theme.colors.cardElevated,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  upNextBadgeText: {
+    color: theme.colors.red,
+    fontSize: theme.sizes.sm,
+    fontFamily: theme.fonts.display,
+  },
+  upNextInfo: { flex: 1 },
+  upNextTitle: {
+    color: theme.colors.textPrimary,
+    fontSize: theme.sizes.md,
+    letterSpacing: 0.5,
+    fontFamily: theme.fonts.heading,
+  },
+  upNextMeta: {
+    color: theme.colors.textMuted,
+    fontSize: theme.sizes.xs,
+    letterSpacing: 1.5,
+    marginTop: 2,
+    fontFamily: theme.fonts.medium,
+  },
+  upNextRight: { alignItems: 'flex-end' },
+  upNextWhen: {
+    color: theme.colors.gold,
+    fontSize: theme.sizes.xs,
+    letterSpacing: 1.5,
+    textAlign: 'right',
+    fontFamily: theme.fonts.heading,
+  },
+  noEvent: { alignItems: 'center', marginTop: 60 },
+  noEventText: { color: theme.colors.textSecondary, fontSize: theme.sizes.md, fontFamily: theme.fonts.heading },
+  noEventSub: { color: theme.colors.textDimmed, fontSize: theme.sizes.sm, marginTop: 4 },
 });

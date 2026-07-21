@@ -1,0 +1,64 @@
+<!doctype html><html><head><meta charset="utf-8">
+<link rel="stylesheet" href="_shared.css">
+<style>
+  .screen{position:relative;width:430px;height:932px;overflow:hidden;background:#050608}
+  /* full stage as a hero across the top; form sits on the dark area below */
+  .bg{position:absolute;top:0;left:0;right:0;height:470px;
+    background:url('wcc-stage-hires.png') no-repeat;
+    background-size:118% auto;background-position:50% 6%;}
+  /* blend the stage bottom into the dark form area + slight top darken for status bar */
+  .scrim{position:absolute;inset:0;background:
+    linear-gradient(180deg,
+      rgba(4,5,8,.55) 0%, rgba(4,5,8,.05) 12%, rgba(4,5,8,.05) 34%,
+      rgba(4,5,8,.7) 44%, #050608 52%, #050608 100%);}
+
+  .statusbar{position:relative;z-index:3}
+
+  .content{position:absolute;z-index:3;left:0;right:0;bottom:0;padding:0 30px 42px;text-align:center}
+
+  .brandMark{font-family:'Anton',sans-serif;font-size:46px;letter-spacing:1px;color:var(--wcc-red);
+    text-shadow:0 2px 0 var(--wcc-red-dk),0 3px 0 #5e0805,0 6px 14px rgba(0,0,0,.7);-webkit-text-stroke:1px #2a0402;line-height:1}
+  .brandFull{font-family:'Oswald',sans-serif;font-weight:600;font-size:11px;letter-spacing:3.5px;color:#d2d7dc;margin-top:6px}
+  .brandFull b{color:#e7c463;font-weight:700}
+
+  .brandFull{margin-bottom:0}
+  .signin{font-family:'Anton',sans-serif;font-size:26px;letter-spacing:4px;color:#fff;margin:8px 0 18px;
+    text-shadow:0 2px 8px rgba(0,0,0,.8)}
+
+  .field{display:flex;align-items:center;gap:10px;width:100%;margin-bottom:12px;
+    background:rgba(10,12,16,.72);border:1px solid rgba(255,255,255,.18);border-radius:12px;
+    padding:14px 16px;backdrop-filter:blur(2px)}
+  .field .ic{width:18px;text-align:center;color:#9aa0a8;font-size:15px}
+  .field input{flex:1;background:none;border:none;outline:none;color:#fff;font-family:'Oswald',sans-serif;font-size:16px;letter-spacing:.5px}
+  .field input::placeholder{color:#6b7178}
+
+  .cta{margin-top:6px}
+  .cta{font-size:22px}
+
+  .forgot{display:block;text-align:right;margin:-4px 2px 16px;color:#cfd3d8;font-family:'Oswald';font-size:12px;letter-spacing:1px;opacity:.85}
+  .link{margin-top:18px;color:#cfd3d8;font-family:'Oswald',sans-serif;font-size:13px;letter-spacing:1px}
+  .link b{color:var(--nitro-1);font-weight:700}
+  .legal{margin-top:16px;color:#7d838a;font-size:10px;letter-spacing:1.5px}
+</style></head>
+<body>
+<div class="screen">
+  <div class="bg"></div>
+  <div class="scrim"></div>
+
+  <div class="statusbar"><span>9:41</span><div class="dots">NITRO LIVE ▮▮▮ ▶</div></div>
+
+  <div class="content">
+    <div class="brandFull">WRESTLING CARDS <b>&amp;</b> COLLECTIBLES</div>
+    <div class="signin">SIGN IN</div>
+
+    <div class="field"><span class="ic">✉</span><input placeholder="Email" value=""></div>
+    <div class="field"><span class="ic">🔒</span><input placeholder="Password" type="password" value="••••••••"></div>
+    <div class="forgot">Forgot password?</div>
+
+    <button class="cta">ENTER THE ARENA</button>
+
+    <div class="link">New here? <b>CREATE ACCOUNT</b></div>
+    <div class="legal">21+ · NOT AFFILIATED WITH WWE · DEMO CONCEPT</div>
+  </div>
+</div>
+</body></html>

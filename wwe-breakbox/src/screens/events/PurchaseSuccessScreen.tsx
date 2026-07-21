@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { EventsStackParamList } from '../../navigation/EventsStack';
 import { TierBadge } from '../../components/ui/TierBadge';
 import { WWEButton } from '../../components/ui/WWEButton';
+import { ScreenBackground } from '../../components/ui/ScreenBackground';
 import { BRAND_CONFIG } from '../../constants/brands';
 import { theme } from '../../constants/theme';
 
@@ -62,7 +63,7 @@ export function PurchaseSuccessScreen({ route, navigation }: Props) {
   }, []);
 
   return (
-    <View style={[styles.container, { paddingBottom: insets.bottom + 24 }]}>
+    <ScreenBackground>
       {/* Confetti */}
       <View style={StyleSheet.absoluteFill} pointerEvents="none">
         {particles.map((p) => (
@@ -70,7 +71,7 @@ export function PurchaseSuccessScreen({ route, navigation }: Props) {
         ))}
       </View>
 
-      <View style={styles.content}>
+      <View style={[styles.content, { paddingBottom: insets.bottom + 24 }]}>
         <Text style={styles.claimed}>YOU CLAIMED IT!</Text>
 
         <View style={[styles.card, { borderColor: brandConfig.color }]}>
@@ -93,33 +94,31 @@ export function PurchaseSuccessScreen({ route, navigation }: Props) {
         <Text style={styles.sub}>Your slot has been confirmed!</Text>
 
         <WWEButton
-          label="View My Purchases"
+          label="VIEW MY PURCHASES"
           onPress={() => {
             navigation.getParent()?.navigate('MyPurchases');
           }}
           style={styles.button}
         />
         <WWEButton
-          label="Back to Roster"
+          label="BACK TO ROSTER"
           onPress={() => navigation.navigate('EventDetail', { eventId })}
           variant="outline"
           style={styles.secondBtn}
         />
       </View>
-    </View>
+    </ScreenBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: theme.colors.background },
   content: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: theme.spacing.lg },
   claimed: {
     color: theme.colors.gold,
     fontSize: theme.sizes.xl,
-    fontWeight: '900',
-    letterSpacing: 4,
+    letterSpacing: 3,
     marginBottom: theme.spacing.xl,
-    fontFamily: 'Oswald_700Bold',
+    fontFamily: theme.fonts.display,
   },
   card: {
     width: '100%',
