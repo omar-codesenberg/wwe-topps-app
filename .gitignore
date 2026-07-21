@@ -1,0 +1,8 @@
+# macOS
+.DS_Store
+
+# Claude Code (local config / state)
+.claude/
+
+# Cloud Functions build output (compiled from functions/src by tsc)
+wwe-breakbox/functions/lib/
